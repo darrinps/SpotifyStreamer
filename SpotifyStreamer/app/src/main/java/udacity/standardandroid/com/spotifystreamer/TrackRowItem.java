@@ -5,22 +5,34 @@ package udacity.standardandroid.com.spotifystreamer;
  */
 public class TrackRowItem
 {
-    private String imageURLAsString;
+    private String thumbnailUrl;
     private String albumName;
     private String trackName;
     private String previewUrl;
+    private String bigImageUrl;
 
-    public TrackRowItem(String imageId, String album_name, String track_name, String spotifyId)
+    public TrackRowItem(String thumbnailUrl, String bigImageUrl, String album_name, String track_name, String spotifyId)
     {
-        this.imageURLAsString = imageId;
-        this.albumName        = album_name;
-        this.trackName        = track_name;
-        this.previewUrl       = spotifyId;
+        this.thumbnailUrl = thumbnailUrl;
+        this.bigImageUrl  = bigImageUrl;
+        this.albumName    = album_name;
+        this.trackName    = track_name;
+        this.previewUrl   = spotifyId;
+    }
+
+    public String getBigImageUrl()
+    {
+        return bigImageUrl;
+    }
+
+    public void setBigImageUrl(String bigImageUrl)
+    {
+        this.bigImageUrl = bigImageUrl;
     }
 
     public String getImageId()
     {
-        return imageURLAsString;
+        return thumbnailUrl;
     }
 
     public String getTrackName()
@@ -35,7 +47,7 @@ public class TrackRowItem
 
     public void setImageId(String imageId)
     {
-        this.imageURLAsString = imageId;
+        this.thumbnailUrl = imageId;
     }
 
     public String getAlbumName()

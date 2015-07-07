@@ -85,41 +85,40 @@ public class TracksActivityFragment extends Fragment
             }
 
             List<Track> trackList = tracks.tracks;
-            Iterator<Track> trackIterator = trackList.iterator();
 
-            while(trackIterator.hasNext())
+            for (Track track : trackList)
             {
-                Track track = trackIterator.next();
-
-                TrackRowItem item = null;
+                TrackRowItem item;
 
                 AlbumSimple album = track.album;
 
-                if(album.images.size() == 0 )
+                if (album.images.size() == 0)
                 {
                     //No image for this one
-                    item = new TrackRowItem(null, album.name, track.name, track.preview_url);
+                    item = new TrackRowItem(null, null, album.name, track.name, track.preview_url);
                 }
                 else
                 {
                     //We have an image. Get the latest one
                     String urlAsString = track.album.images.get(track.album.images.size() - 1).url;
 
-                    item = new TrackRowItem(urlAsString, album.name, track.name, track.preview_url);
-
                     //See if there is a large one
                     Iterator<Image> iterator = track.album.images.iterator();
 
-                    while(iterator.hasNext())
+                    String bigImage = null;
+
+                    while (iterator.hasNext())
                     {
                         Image image = iterator.next();
 
-                        if(image.height > 600)
+                        if (image.height > 600)
                         {
                             //We have a big one
+                            bigImage = image.url;
                         }
-
                     }
+
+                    item = new TrackRowItem(urlAsString, bigImage, album.name, track.name, track.preview_url);
                 }
 
                 trackAdapter.add(item);
@@ -129,7 +128,7 @@ public class TracksActivityFragment extends Fragment
         @Override
         protected Tracks doInBackground(String... params)
         {
-            String spotifyId = "";
+            String spotifyId;
 
             if(params.length > 0)
             {
@@ -148,9 +147,7 @@ public class TracksActivityFragment extends Fragment
             Map<String, Object> options = new HashMap<>();
             options.put("country", "US");
 
-            Tracks tracks = spotify.getArtistTopTrack(spotifyId, options);
-
-            return tracks;
+            return spotify.getArtistTopTrack(spotifyId, options);
         }
     }
 }
