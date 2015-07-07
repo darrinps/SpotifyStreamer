@@ -81,7 +81,7 @@ public class SearchActivityFragment extends Fragment
             @Override
             public void afterTextChanged(Editable s)
             {
-                if(s.length() > 1)
+                if(s.length() > 0)
                 {
                     //Note the params are NOT defined in the construction
                     FetchArtistsTask task = new FetchArtistsTask();
@@ -122,15 +122,12 @@ public class SearchActivityFragment extends Fragment
             }
 
             List<Artist> artistsList = artistsPager.artists.items;
-            Iterator<Artist> artistIterator = artistsList.iterator();
 
-            while(artistIterator.hasNext())
+            for (Artist artist : artistsList)
             {
-                Artist artist = artistIterator.next();
+                SearchRowItem item;
 
-                SearchRowItem item = null;
-
-                if(artist.images.size() <= 0 )
+                if (artist.images.size() <= 0)
                 {
                     //No image for this one
                     item = new SearchRowItem(null, artist.name, artist.id);
@@ -152,7 +149,7 @@ public class SearchActivityFragment extends Fragment
         protected ArtistsPager doInBackground(String... params)
         {
 
-            String artistName = "";
+            String artistName;
             String[] array = null;
 
             if(params.length > 0)
@@ -166,9 +163,7 @@ public class SearchActivityFragment extends Fragment
 
             SpotifyApi api = new SpotifyApi();
             SpotifyService spotify = api.getService();
-            ArtistsPager results = spotify.searchArtists(artistName);
-
-            return results;
+            return spotify.searchArtists(artistName);
         }
     }
 }
