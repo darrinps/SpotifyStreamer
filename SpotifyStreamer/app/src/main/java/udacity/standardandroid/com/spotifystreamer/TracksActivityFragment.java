@@ -2,6 +2,9 @@ package udacity.standardandroid.com.spotifystreamer;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -9,9 +12,15 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
+
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -31,8 +40,9 @@ import kaaes.spotify.webapi.android.models.Tracks;
 public class TracksActivityFragment extends Fragment
 {
     final static String TAG = TracksActivityFragment.class.getSimpleName();
-
+    private LinearLayout mParentLayout;
     private TracksAdapter trackAdapter;
+    private Target loadTarget;
 
     public TracksActivityFragment()
     {
@@ -62,9 +72,10 @@ public class TracksActivityFragment extends Fragment
         //The params ARE sent in the execute though
         task.execute(spotifyId);
 
+        mParentLayout = (LinearLayout)v.findViewById(R.id.layout_id);
+
         return v;
     }
-
 
     /**
      * The first tells the input type. The second an optional method's input type. The third the return type
@@ -123,6 +134,23 @@ public class TracksActivityFragment extends Fragment
 
                 trackAdapter.add(item);
             }
+
+            int count = trackAdapter.getCount();
+
+            for(int index = 0; index < count; index++)
+            {
+               //Find a big image IF it exists
+                TrackRowItem item = trackAdapter.getItem(index);
+
+                if(item.hasBigImage())
+                {
+                    //push it to the background
+                    loadBitmap(item.getBigImageUrl());
+
+                    //Just need one.
+                    break;
+                }
+            }
         }
 
         @Override
@@ -148,6 +176,56 @@ public class TracksActivityFragment extends Fragment
             options.put("country", "US");
 
             return spotify.getArtistTopTrack(spotifyId, options);
+        }
+    }
+
+    public void loadBitmap(String url)
+    {
+        if (loadTarget == null) loadTarget = new Target()
+        {
+            @Override
+            public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from)
+            {
+                // do something with the Bitmap
+                setLoadedBitmap(bitmap);
+            }
+
+            @Override
+            public void onBitmapFailed(Drawable errorDrawable)
+            {
+                //NOOP
+            }
+
+            @Override
+            public void onPrepareLoad(Drawable placeHolderDrawable)
+            {
+                //NOOP
+            }
+        };
+
+        Picasso.with(getActivity()).load(url).into(loadTarget);
+    }
+
+    public void setLoadedBitmap(Bitmap b)
+    {
+        Drawable drawable = new BitmapDrawable(getResources(),b);
+
+        if(drawable == null)
+        {
+            return;
+        }
+
+        drawable.setAlpha(20);
+
+        int sdk = android.os.Build.VERSION.SDK_INT;
+
+        if(sdk < android.os.Build.VERSION_CODES.JELLY_BEAN)
+        {
+            mParentLayout.setBackgroundDrawable(drawable);
+        }
+        else
+        {
+            mParentLayout.setBackground(drawable);
         }
     }
 }

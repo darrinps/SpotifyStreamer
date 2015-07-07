@@ -20,6 +20,16 @@ public class TrackRowItem
         this.previewUrl   = spotifyId;
     }
 
+    public boolean hasBigImage()
+    {
+        if(bigImageUrl == null || bigImageUrl.length() < 1)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
     public String getBigImageUrl()
     {
         return bigImageUrl;
