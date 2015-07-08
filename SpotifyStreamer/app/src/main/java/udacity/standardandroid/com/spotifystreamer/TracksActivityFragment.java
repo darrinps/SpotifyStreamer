@@ -12,7 +12,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -20,7 +19,6 @@ import android.widget.Toast;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -33,6 +31,7 @@ import kaaes.spotify.webapi.android.models.AlbumSimple;
 import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.Track;
 import kaaes.spotify.webapi.android.models.Tracks;
+import retrofit.RetrofitError;
 
 /**
  * A fragment holding the selected artist's top 10 tracks.
@@ -40,19 +39,42 @@ import kaaes.spotify.webapi.android.models.Tracks;
 public class TracksActivityFragment extends Fragment
 {
     final static String TAG = TracksActivityFragment.class.getSimpleName();
+    private static final String KEY_ITEMS_LIST = "keyitemslist";
     private LinearLayout mParentLayout;
-    private TracksAdapter trackAdapter;
-    private Target loadTarget;
+    private TracksAdapter mTrackAdapter;
+    private Target mLoadTarget;
+    private ArrayList<TrackRowItem> mTrackRowItemList = new ArrayList<>();
 
     public TracksActivityFragment()
     {
     }
 
     @Override
+    public void onCreate(Bundle savedInstanceState)
+    {
+        super.onCreate(savedInstanceState);
+
+        if(savedInstanceState != null)
+        {
+            //We've got data saved. Reconstitute it
+            mTrackRowItemList = savedInstanceState.getParcelableArrayList(KEY_ITEMS_LIST);
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState)
+    {
+        super.onSaveInstanceState(outState);
+
+        //Save off the data we need to recreate everything
+        outState.putParcelableArrayList(KEY_ITEMS_LIST, mTrackRowItemList);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState)
     {
-        trackAdapter = new TracksAdapter(inflater.getContext(), R.layout.list_item_track, new ArrayList<TrackRowItem>());
+        mTrackAdapter = new TracksAdapter(inflater.getContext(), R.layout.list_item_track, new ArrayList<TrackRowItem>());
 
         //You have to have a view to see and that gets done here in onCreateView
         View v = inflater.inflate(R.layout.fragment_tracks, container, false);
@@ -61,18 +83,45 @@ public class TracksActivityFragment extends Fragment
         final ListView listView = (ListView)v.findViewById(R.id.listview_tracks);
 
         //Add the adapter to the listView
-        listView.setAdapter(trackAdapter);
+        listView.setAdapter(mTrackAdapter);
 
-        //Note the params are NOT defined in the construction
-        FetchTrackTask task = new FetchTrackTask();
-
-        //Grab the correct ID to query Spotify with
-        String spotifyId = getActivity().getIntent().getExtras().getString(Intent.EXTRA_TEXT);
-
-        //The params ARE sent in the execute though
-        task.execute(spotifyId);
-
+        //Needed to load the background bitmap
         mParentLayout = (LinearLayout)v.findViewById(R.id.layout_id);
+
+        //Only do this if we don't have data saved
+        if(savedInstanceState == null)
+        {
+            //Note the params are NOT defined in the construction
+            FetchTrackTask task = new FetchTrackTask();
+
+            //Grab the correct ID to query Spotify with
+            String spotifyId = getActivity().getIntent().getExtras().getString(Intent.EXTRA_TEXT);
+
+            //The params ARE sent in the execute though
+            task.execute(spotifyId);
+        }
+        else
+        {
+            //Populate the list using the data we just pulled back in
+            mTrackAdapter.addAll(mTrackRowItemList);
+
+            int count = mTrackAdapter.getCount();
+
+            for(int index = 0; index < count; index++)
+            {
+                //Find a big image IF it exists
+                TrackRowItem item = mTrackAdapter.getItem(index);
+
+                if(item.hasBigImage())
+                {
+                    //push it to the background
+                    loadBitmap(item.getBigImageUrl());
+
+                    //Just need one.
+                    break;
+                }
+            }
+        }
 
         return v;
     }
@@ -85,7 +134,7 @@ public class TracksActivityFragment extends Fragment
         @Override
         protected void onPostExecute(Tracks tracks)
         {
-            trackAdapter.clear();
+            mTrackAdapter.clear();
 
             if (tracks == null || tracks.tracks.size() < 1)
             {
@@ -132,15 +181,16 @@ public class TracksActivityFragment extends Fragment
                     item = new TrackRowItem(urlAsString, bigImage, album.name, track.name, track.preview_url);
                 }
 
-                trackAdapter.add(item);
+                mTrackAdapter.add(item);
+                mTrackRowItemList.add(item);
             }
 
-            int count = trackAdapter.getCount();
+            int count = mTrackAdapter.getCount();
 
             for(int index = 0; index < count; index++)
             {
                //Find a big image IF it exists
-                TrackRowItem item = trackAdapter.getItem(index);
+                TrackRowItem item = mTrackAdapter.getItem(index);
 
                 if(item.hasBigImage())
                 {
@@ -175,13 +225,27 @@ public class TracksActivityFragment extends Fragment
             Map<String, Object> options = new HashMap<>();
             options.put("country", "US");
 
-            return spotify.getArtistTopTrack(spotifyId, options);
+            Tracks tracks = null;
+
+            try
+            {
+                tracks = spotify.getArtistTopTrack(spotifyId, options);
+            }
+            catch(RetrofitError err)
+            {
+                Log.e(TAG, "Spotify getArtistsTopTrack choked: " + err);
+            }
+
+            //Refresh the list to hold new entries
+            mTrackRowItemList = new ArrayList<>();
+
+            return tracks;
         }
     }
 
     public void loadBitmap(String url)
     {
-        if (loadTarget == null) loadTarget = new Target()
+        if (mLoadTarget == null) mLoadTarget = new Target()
         {
             @Override
             public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from)
@@ -203,7 +267,7 @@ public class TracksActivityFragment extends Fragment
             }
         };
 
-        Picasso.with(getActivity()).load(url).into(loadTarget);
+        Picasso.with(getActivity()).load(url).into(mLoadTarget);
     }
 
     public void setLoadedBitmap(Bitmap b)

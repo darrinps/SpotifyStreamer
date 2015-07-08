@@ -2,6 +2,9 @@ package udacity.standardandroid.com.spotifystreamer;
 
 import android.app.Activity;
 import android.content.Context;
+import android.os.Bundle;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,6 +23,7 @@ import java.util.List;
 public class TracksAdapter extends ArrayAdapter<TrackRowItem>
 {
     private static final String TAG = TracksAdapter.class.getSimpleName();
+
     Context context;
 
     public TracksAdapter(Context context,
@@ -40,7 +44,7 @@ public class TracksAdapter extends ArrayAdapter<TrackRowItem>
 
     public View getView(int position, View convertView, ViewGroup parent)
     {
-        ViewHolder holder = null;
+        ViewHolder holder;
         TrackRowItem rowItem = getItem(position);
 
         LayoutInflater mInflater = (LayoutInflater) context.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
@@ -70,7 +74,7 @@ public class TracksAdapter extends ArrayAdapter<TrackRowItem>
         }
         else
         {
-            Log.d(TAG, "Image URL track: " + rowItem.getTrackName() + " = " + rowItem.getImageId().toString());
+//            Log.d(TAG, "Image URL track: " + rowItem.getTrackName() + " = " + rowItem.getImageId().toString());
             Picasso.with(context).load(urlAsString).into(holder.imageView);
         }
 
