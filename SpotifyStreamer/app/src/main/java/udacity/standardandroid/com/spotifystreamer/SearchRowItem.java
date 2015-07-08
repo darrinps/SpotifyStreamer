@@ -2,6 +2,8 @@ package udacity.standardandroid.com.spotifystreamer;
 
 /**
  * Created by darri_000 on 6/25/2015.
+ *
+ * Javabean like class to hold a search result entry
  */
 public class SearchRowItem
 {

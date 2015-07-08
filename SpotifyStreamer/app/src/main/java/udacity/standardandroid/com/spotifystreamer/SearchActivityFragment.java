@@ -25,7 +25,8 @@ import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
 
 /**
- * A placeholder fragment containing a simple view.
+ * This fragment is used to house the entry EditText and search response ListView for the
+ * artists/bands.
  */
 public class SearchActivityFragment extends Fragment
 {
@@ -98,7 +99,6 @@ public class SearchActivityFragment extends Fragment
             public void onTextChanged(CharSequence s, int start, int before, int count){}
         });
 
-
         return v;
     }
 
@@ -107,7 +107,6 @@ public class SearchActivityFragment extends Fragment
      */
     public class FetchArtistsTask extends AsyncTask<String, Void, ArtistsPager>
     {
-
         @Override
         protected void onPostExecute(ArtistsPager artistsPager)
         {
@@ -115,7 +114,6 @@ public class SearchActivityFragment extends Fragment
 
             if (artistsPager == null || artistsPager.artists.items.size() < 1)
             {
-
                 Context context = getActivity().getApplicationContext();
                 Toast.makeText(context, "No artists/bands found", Toast.LENGTH_LONG).show();
                 return;
@@ -138,7 +136,6 @@ public class SearchActivityFragment extends Fragment
                     String urlAsString = artist.images.get(artist.images.size() - 1).url;
 
                     item = new SearchRowItem(urlAsString, artist.name, artist.id);
-
                 }
 
                 searchAdapter.add(item);
@@ -148,7 +145,6 @@ public class SearchActivityFragment extends Fragment
         @Override
         protected ArtistsPager doInBackground(String... params)
         {
-
             String artistName;
             String[] array = null;
 

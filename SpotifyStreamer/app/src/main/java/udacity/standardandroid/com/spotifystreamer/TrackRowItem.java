@@ -2,6 +2,8 @@ package udacity.standardandroid.com.spotifystreamer;
 
 /**
  * Created by darri_000 on 7/1/2015.
+ *
+ * Javabean like class to hold a specific sound track entry's data
  */
 public class TrackRowItem
 {
@@ -22,12 +24,7 @@ public class TrackRowItem
 
     public boolean hasBigImage()
     {
-        if(bigImageUrl == null || bigImageUrl.length() < 1)
-        {
-            return false;
-        }
-
-        return true;
+        return !(bigImageUrl == null || bigImageUrl.length() < 1);
     }
 
     public String getBigImageUrl()

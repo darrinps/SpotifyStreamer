@@ -35,7 +35,7 @@ import kaaes.spotify.webapi.android.models.Track;
 import kaaes.spotify.webapi.android.models.Tracks;
 
 /**
- * A placeholder fragment containing a simple view.
+ * A fragment holding the selected artist's top 10 tracks.
  */
 public class TracksActivityFragment extends Fragment
 {
@@ -170,7 +170,7 @@ public class TracksActivityFragment extends Fragment
             SpotifyApi api = new SpotifyApi();
             SpotifyService spotify = api.getService();
 
-            Log.d(TAG, "Retrieving tracks for ID: " + spotifyId);
+//            Log.d(TAG, "Retrieving tracks for ID: " + spotifyId);
 
             Map<String, Object> options = new HashMap<>();
             options.put("country", "US");
@@ -208,17 +208,14 @@ public class TracksActivityFragment extends Fragment
 
     public void setLoadedBitmap(Bitmap b)
     {
-        Drawable drawable = new BitmapDrawable(getResources(),b);
+        Drawable drawable = new BitmapDrawable(getResources(), b);
 
-        if(drawable == null)
-        {
-            return;
-        }
-
+        //Make it very translucent so we can see the text on top
         drawable.setAlpha(20);
 
         int sdk = android.os.Build.VERSION.SDK_INT;
 
+        //Version 16 on has a new way to set the background
         if(sdk < android.os.Build.VERSION_CODES.JELLY_BEAN)
         {
             mParentLayout.setBackgroundDrawable(drawable);

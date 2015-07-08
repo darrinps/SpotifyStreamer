@@ -17,7 +17,7 @@ import java.util.List;
 public class SearchAdapter extends ArrayAdapter<SearchRowItem>
 {
     private static final String TAG = SearchAdapter.class.getSimpleName();
-    Context context;
+    private Context context;
 
     public SearchAdapter(Context context,
                          int resourceId,
@@ -36,7 +36,7 @@ public class SearchAdapter extends ArrayAdapter<SearchRowItem>
 
     public View getView(int position, View convertView, ViewGroup parent)
     {
-        ViewHolder holder = null;
+        ViewHolder holder;
         SearchRowItem rowItem = getItem(position);
 
         LayoutInflater mInflater = (LayoutInflater) context.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
@@ -64,11 +64,9 @@ public class SearchAdapter extends ArrayAdapter<SearchRowItem>
         }
         else
         {
-            Log.d(TAG, "Image URL artist: " + rowItem.getArtistName() + " = " + rowItem.getImageId().toString());
+//            Log.d(TAG, "Image URL artist: " + rowItem.getArtistName() + " = " + rowItem.getImageId().toString());
             Picasso.with(context).load(urlAsString).into(holder.imageView);
         }
-
-        Log.d(TAG, "Converted View for : " + rowItem.getArtistName());
 
         return convertView;
     }
