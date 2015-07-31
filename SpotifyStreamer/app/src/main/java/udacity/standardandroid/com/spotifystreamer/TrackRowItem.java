@@ -15,14 +15,17 @@ public class TrackRowItem implements Parcelable
     private String trackName;
     private String previewUrl;
     private String bigImageUrl;
+    private String artistName;
 
-    public TrackRowItem(String thumbnailUrl, String bigImageUrl, String album_name, String track_name, String spotifyId)
+
+    public TrackRowItem(String thumbnailUrl, String bigImageUrl, String album_name, String track_name, String spotifyId, String artistName)
     {
         this.thumbnailUrl = thumbnailUrl;
-        this.bigImageUrl  = bigImageUrl;
         this.albumName    = album_name;
         this.trackName    = track_name;
         this.previewUrl   = spotifyId;
+        this.bigImageUrl  = bigImageUrl;
+        this.artistName   = artistName;
     }
 
     protected TrackRowItem(Parcel in)
@@ -32,6 +35,7 @@ public class TrackRowItem implements Parcelable
         trackName    = in.readString();
         previewUrl   = in.readString();
         bigImageUrl  = in.readString();
+        artistName   = in.readString();
     }
 
     public static final Creator<TrackRowItem> CREATOR = new Creator<TrackRowItem>()
@@ -104,6 +108,16 @@ public class TrackRowItem implements Parcelable
         this.previewUrl = previewUrl;
     }
 
+    public String getArtistName()
+    {
+        return artistName;
+    }
+
+    public void setArtistName(String artistName)
+    {
+        this.artistName = artistName;
+    }
+
     @Override
     public int describeContents()
     {
@@ -118,5 +132,6 @@ public class TrackRowItem implements Parcelable
         dest.writeString(trackName);
         dest.writeString(previewUrl);
         dest.writeString(bigImageUrl);
+        dest.writeString(artistName);
     }
 }

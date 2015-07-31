@@ -7,11 +7,13 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -19,6 +21,8 @@ import android.widget.Toast;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -40,6 +44,9 @@ public class TracksActivityFragment extends Fragment
 {
     final static String TAG = TracksActivityFragment.class.getSimpleName();
     private static final String KEY_ITEMS_LIST = "keyitemslist";
+    public static final String KEY_TRACK_ROW_ITEM = "com.standardandroid.track_row_item";
+    public static final String KEY_ARTIST_BITMAP_FILE_NAME = "com.standardandroid.artist_bitmap_file_name";
+    private static final String mArtistBitmapFilename = "ArtistFilename";
     private LinearLayout mParentLayout;
     private TracksAdapter mTrackAdapter;
     private Target mLoadTarget;
@@ -123,6 +130,25 @@ public class TracksActivityFragment extends Fragment
             }
         }
 
+        //Give each of the items a listener
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l)
+            {
+                TrackRowItem item = (TrackRowItem)listView.getItemAtPosition(i);
+
+                //Kick off Player Activity
+                Intent intent = new Intent(getActivity(), PlayerActivity.class);
+                intent.putExtra(KEY_TRACK_ROW_ITEM, item);
+
+                intent.putExtra(KEY_ARTIST_BITMAP_FILE_NAME, mArtistBitmapFilename);
+
+
+                startActivity(intent);
+            }
+        });
+
         return v;
     }
 
@@ -152,10 +178,14 @@ public class TracksActivityFragment extends Fragment
 
                 AlbumSimple album = track.album;
 
+                TracksActivity activity = (TracksActivity)getActivity();
+
                 if (album.images.size() == 0)
                 {
                     //No image for this one
-                    item = new TrackRowItem(null, null, album.name, track.name, track.preview_url);
+
+
+                    item = new TrackRowItem(null, null, album.name, track.name, track.preview_url, activity.getArtistName());
                 }
                 else
                 {
@@ -178,7 +208,7 @@ public class TracksActivityFragment extends Fragment
                         }
                     }
 
-                    item = new TrackRowItem(urlAsString, bigImage, album.name, track.name, track.preview_url);
+                    item = new TrackRowItem(urlAsString, bigImage, album.name, track.name, track.preview_url,activity.getArtistName() );
                 }
 
                 mTrackAdapter.add(item);
@@ -250,7 +280,10 @@ public class TracksActivityFragment extends Fragment
             @Override
             public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from)
             {
-                // do something with the Bitmap
+                //Cache it off for the track player and show it on the background
+                CacheAlbumBitmapTask task = new CacheAlbumBitmapTask(bitmap);
+                task.execute();
+
                 setLoadedBitmap(bitmap);
             }
 
@@ -270,9 +303,9 @@ public class TracksActivityFragment extends Fragment
         Picasso.with(getActivity()).load(url).into(mLoadTarget);
     }
 
-    public void setLoadedBitmap(Bitmap b)
+    public void setLoadedBitmap(Bitmap bitmap)
     {
-        Drawable drawable = new BitmapDrawable(getResources(), b);
+        Drawable drawable = new BitmapDrawable(getResources(), bitmap);
 
         //Make it very translucent so we can see the text on top
         drawable.setAlpha(20);
@@ -289,4 +322,39 @@ public class TracksActivityFragment extends Fragment
             mParentLayout.setBackground(drawable);
         }
     }
+
+    private class CacheAlbumBitmapTask extends AsyncTask<Void, Void, Void>
+    {
+        private Bitmap mImageToStore;
+
+        public CacheAlbumBitmapTask(Bitmap bmp)
+        {
+            mImageToStore = bmp;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params)
+        {
+            try
+            {
+            //Write file to phone so we don't have to reload it
+            FileOutputStream stream = getActivity().openFileOutput(mArtistBitmapFilename, Context.MODE_PRIVATE);
+            mImageToStore.compress(Bitmap.CompressFormat.PNG, 100, stream);
+
+            //Cleanup
+            stream.close();
+
+            //We still need it for the background and Picasso will gripe if we clean it up
+//            artistBitmap.recycle();
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+                Log.w(TAG, "Could not save artist bitmap to disk.");
+            }
+
+            return null;
+        }
+    }
+
 }
