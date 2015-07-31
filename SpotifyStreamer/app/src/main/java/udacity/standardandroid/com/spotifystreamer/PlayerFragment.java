@@ -12,6 +12,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
@@ -33,14 +35,15 @@ public class PlayerFragment extends Fragment implements MediaPlayer.OnPreparedLi
 {
     private static final String TAG = PlayerFragment.class.getSimpleName();
     private static final String KEY_SONG_POSITION = "com.standandroid.last_position";
-    private MediaPlayer mPlayer;
-    private TextView  mArtistText;
-    private TextView  mAlbumText;
-    private TextView  mTrackText;
-    private ImageView mImageView;
-    private SeekBar   mSeekBar;
-    private TextView  mStartTextSeekerBar;
-    private TextView  mEndTextSeekerBar;
+    private MediaPlayer  mPlayer;
+    private TextView     mArtistText;
+    private TextView     mAlbumText;
+    private TextView     mTrackText;
+    private ImageView    mImageView;
+    private ImageButton  mStartPauseButton;
+    private SeekBar      mSeekBar;
+    private TextView     mStartTextSeekerBar;
+    private TextView     mEndTextSeekerBar;
 
     public PlayerFragment()
     {
@@ -92,7 +95,10 @@ public class PlayerFragment extends Fragment implements MediaPlayer.OnPreparedLi
         mSeekBar    = (SeekBar) view.findViewById(R.id.seek_bar_id);
         mStartTextSeekerBar = (TextView) view.findViewById(R.id.seeker_bar_start_text_id);
         mEndTextSeekerBar   = (TextView) view.findViewById(R.id.seeker_bar_end_text_id);
+        mStartPauseButton = (ImageButton)view.findViewById(R.id.play_pause_button_id);
 
+        //TODO: Set up state enum and toggle
+        
         try
         {
             LoadAlbumBitmapTask task = new LoadAlbumBitmapTask(mImageView);
@@ -232,6 +238,9 @@ public class PlayerFragment extends Fragment implements MediaPlayer.OnPreparedLi
             //Get the length of the sample (just in case they can vary
             int duration = mPlayer.getDuration();
 
+            //Now the duration is in milliseconds. Round this off to seconds
+            duration /= 1000;
+
             //Set the initial position to 0
             mStartTextSeekerBar.setText(Integer.toString(0));
 
@@ -243,6 +252,7 @@ public class PlayerFragment extends Fragment implements MediaPlayer.OnPreparedLi
             //Set up a listener for it to call when it completes
             mPlayer.setOnCompletionListener(new MyOnCompletionListener(observer));
 
+            mSeekBar.setProgress(0);
 
             mPlayer.start();
 
