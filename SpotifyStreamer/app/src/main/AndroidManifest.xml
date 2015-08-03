@@ -29,11 +29,7 @@
         </activity>
         <activity
             android:name=".PlayerActivity"
-            android:label="@string/title_activity_player"
-            android:parentActivityName=".TracksActivity" >
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="udacity.standardandroid.com.spotifystreamer.TracksActivity" />
+            android:label="@string/title_activity_player">
         </activity>
     </application>
 

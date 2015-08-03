@@ -9,79 +9,88 @@
     android:background="@color/very_light_gray"
     tools:context="udacity.standardandroid.com.spotifystreamer.PlayerFragment">
 
-    <TextView
-        android:id="@+id/artist_name_id"
-        android:text="@string/artist_name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        />
-
-    <TextView
-        android:id="@+id/album_name_id"
-        android:text="@string/album_name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-
-    <ImageView
-        android:id="@+id/image_id"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/kix_image"
-       />
-
-    <TextView
-        android:id="@+id/track_name_id"
-        android:text="@string/track_name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-
-    <SeekBar
-        android:id="@+id/seek_bar_id"
+    <ScrollView
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="fill_parent">
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/artist_name_id"
+                android:text="@string/artist_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                />
 
-    <RelativeLayout
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content">
+            <TextView
+                android:id="@+id/album_name_id"
+                android:text="@string/album_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
 
-        <TextView
-            android:id="@+id/seeker_bar_start_text_id"
-            android:text="@string/start_text"
-            android:layout_alignParentLeft="true"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-        <TextView
-            android:id="@+id/seeker_bar_end_text_id"
-            android:text="@string/end_text"
-            android:layout_alignParentRight="true"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            <ImageView
+                android:id="@+id/image_id"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/spotify_image"
+                />
 
-    </RelativeLayout>
+            <TextView
+                android:id="@+id/track_name_id"
+                android:text="@string/track_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
 
-    <RelativeLayout
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content">
+            <SeekBar
+                android:id="@+id/seek_bar_id"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content" />
 
-        <ImageButton
-            android:id="@+id/previous_button_id"
-            android:background="@android:drawable/ic_media_previous"
-            android:layout_alignParentLeft="true"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-        <ImageButton
-            android:id="@+id/play_pause_button_id"
-            android:background="@android:drawable/ic_media_play"
-            android:layout_centerInParent="true"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-        <ImageButton
-            android:id="@+id/next_button_id"
-            android:background="@android:drawable/ic_media_next"
-            android:layout_alignParentRight="true"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            <RelativeLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content">
 
-    </RelativeLayout>
+                <TextView
+                    android:id="@+id/seeker_bar_start_text_id"
+                    android:text="@string/start_text"
+                    android:layout_alignParentLeft="true"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+                <TextView
+                    android:id="@+id/seeker_bar_end_text_id"
+                    android:text="@string/end_text"
+                    android:layout_alignParentRight="true"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content">
+
+                <ImageButton
+                    android:id="@+id/previous_button_id"
+                    android:background="@android:drawable/ic_media_previous"
+                    android:layout_alignParentLeft="true"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+                <ImageButton
+                    android:id="@+id/play_pause_button_id"
+                    android:background="@android:drawable/ic_media_play"
+                    android:layout_centerInParent="true"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+                <ImageButton
+                    android:id="@+id/next_button_id"
+                    android:background="@android:drawable/ic_media_next"
+                    android:layout_alignParentRight="true"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </RelativeLayout>
+        </LinearLayout>
+    </ScrollView>
+
 
 </LinearLayout>

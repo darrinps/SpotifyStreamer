@@ -1,6 +1,7 @@
 package udacity.standardandroid.com.spotifystreamer;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.AudioManager;
@@ -40,10 +41,17 @@ public class PlayerFragment extends Fragment implements MediaPlayer.OnPreparedLi
     private TextView     mAlbumText;
     private TextView     mTrackText;
     private ImageView    mImageView;
-    private ImageButton  mStartPauseButton;
+    private ImageButton  mPlayOrPauseButton;
     private SeekBar      mSeekBar;
     private TextView     mStartTextSeekerBar;
     private TextView     mEndTextSeekerBar;
+    private PlayOrPause  mPlayOrPause;
+
+
+    public enum PlayOrPause
+    {
+        PLAY, PAUSE
+    }
 
     public PlayerFragment()
     {
@@ -76,11 +84,12 @@ public class PlayerFragment extends Fragment implements MediaPlayer.OnPreparedLi
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_player, container, false);
 
-        Bundle startBundle = getActivity().getIntent().getExtras();
+        Intent intent = getActivity().getIntent();
+        Bundle extras = intent.getBundleExtra(TracksActivityFragment.KEY_TRACK_ROW_ITEM);
 
-        TrackRowItem item = (TrackRowItem) startBundle.getParcelable(TracksActivityFragment.KEY_TRACK_ROW_ITEM);
+        TrackRowItem item = extras.getParcelable(TracksActivityFragment.KEY_TRACK_ROW_ITEM);
 
-        String filename = getActivity().getIntent().getStringExtra(TracksActivityFragment.KEY_ARTIST_BITMAP_FILE_NAME);
+        String filename = intent.getStringExtra(TracksActivityFragment.KEY_ARTIST_BITMAP_FILE_NAME);
 
         if (item == null)
         {
@@ -95,10 +104,25 @@ public class PlayerFragment extends Fragment implements MediaPlayer.OnPreparedLi
         mSeekBar    = (SeekBar) view.findViewById(R.id.seek_bar_id);
         mStartTextSeekerBar = (TextView) view.findViewById(R.id.seeker_bar_start_text_id);
         mEndTextSeekerBar   = (TextView) view.findViewById(R.id.seeker_bar_end_text_id);
-        mStartPauseButton = (ImageButton)view.findViewById(R.id.play_pause_button_id);
+        mPlayOrPauseButton = (ImageButton)view.findViewById(R.id.play_pause_button_id);
 
         //TODO: Set up state enum and toggle
-        
+        mPlayOrPauseButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                if(mPlayOrPause == PlayOrPause.PAUSE)
+                {
+                    //Start the payer
+                }
+                else
+                {
+                    //Pause the player
+                }
+            }
+        });
+
         try
         {
             LoadAlbumBitmapTask task = new LoadAlbumBitmapTask(mImageView);
@@ -215,7 +239,14 @@ public class PlayerFragment extends Fragment implements MediaPlayer.OnPreparedLi
         {
             while (!bStop.get())
             {
-                mSeekBar.setProgress(mPlayer.getCurrentPosition());
+                int position = mPlayer.getCurrentPosition();
+                int duration = mPlayer.getDuration();
+
+                float seekLocation = ((float)position / duration) * 100f;
+
+//                Log.d(TAG, "Position: " + position + " SeekLocation: " + seekLocation);
+
+                mSeekBar.setProgress((int)seekLocation);
 
                 try
                 {
@@ -273,7 +304,7 @@ public class PlayerFragment extends Fragment implements MediaPlayer.OnPreparedLi
         public void onCompletion(MediaPlayer mp)
         {
             mObserver.stop();
-            mSeekBar.setProgress(mp.getCurrentPosition());
+            mSeekBar.setProgress(0);
         }
     }
 }

@@ -102,7 +102,10 @@ public class TracksActivityFragment extends Fragment
             FetchTrackTask task = new FetchTrackTask();
 
             //Grab the correct ID to query Spotify with
-            String spotifyId = getActivity().getIntent().getExtras().getString(Intent.EXTRA_TEXT);
+            Intent intent = getActivity().getIntent();
+            Bundle extras = intent.getExtras();
+
+            String spotifyId = extras.getString(Intent.EXTRA_TEXT);
 
             //The params ARE sent in the execute though
             task.execute(spotifyId);
@@ -139,11 +142,15 @@ public class TracksActivityFragment extends Fragment
                 TrackRowItem item = (TrackRowItem)listView.getItemAtPosition(i);
 
                 //Kick off Player Activity
+                Intent oldIntent = getActivity().getIntent();
+                Bundle bundle = oldIntent.getExtras();
+
+                bundle.putParcelable(KEY_TRACK_ROW_ITEM, item);
+
                 Intent intent = new Intent(getActivity(), PlayerActivity.class);
-                intent.putExtra(KEY_TRACK_ROW_ITEM, item);
-
+                intent.setExtrasClassLoader(TrackRowItem.class.getClassLoader());
+                intent.putExtra(KEY_TRACK_ROW_ITEM, bundle);
                 intent.putExtra(KEY_ARTIST_BITMAP_FILE_NAME, mArtistBitmapFilename);
-
 
                 startActivity(intent);
             }

@@ -38,6 +38,17 @@ public class TrackRowItem implements Parcelable
         artistName   = in.readString();
     }
 
+    @Override
+    public void writeToParcel(Parcel dest, int flags)
+    {
+        dest.writeString(thumbnailUrl);
+        dest.writeString(albumName);
+        dest.writeString(trackName);
+        dest.writeString(previewUrl);
+        dest.writeString(bigImageUrl);
+        dest.writeString(artistName);
+    }
+
     public static final Creator<TrackRowItem> CREATOR = new Creator<TrackRowItem>()
     {
         @Override
@@ -124,14 +135,5 @@ public class TrackRowItem implements Parcelable
         return 0;
     }
 
-    @Override
-    public void writeToParcel(Parcel dest, int flags)
-    {
-        dest.writeString(thumbnailUrl);
-        dest.writeString(albumName);
-        dest.writeString(trackName);
-        dest.writeString(previewUrl);
-        dest.writeString(bigImageUrl);
-        dest.writeString(artistName);
-    }
+
 }
