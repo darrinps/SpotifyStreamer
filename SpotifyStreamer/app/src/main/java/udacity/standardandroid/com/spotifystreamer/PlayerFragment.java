@@ -287,6 +287,8 @@ public class PlayerFragment extends Fragment implements MediaPlayer.OnPreparedLi
 
                 mSeekBar.setProgress((int)seekLocation);
 
+                mStartTextSeekerBar.setText(seekLocation/1000);
+
                 try
                 {
                     //Update it four times a second
