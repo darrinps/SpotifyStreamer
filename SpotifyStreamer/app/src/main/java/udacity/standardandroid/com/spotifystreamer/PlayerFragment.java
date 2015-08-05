@@ -23,12 +23,14 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
+import udacity.standardandroid.com.spotifystreamer.TrackRowItem;
 
 /**
  * A placeholder fragment containing a simple view.
  */
-public class PlayerFragment extends Fragment implements MediaPlayer.OnPreparedListener, SeekBar.OnSeekBarChangeListener
+public class PlayerFragment extends Fragment implements SeekBar.OnSeekBarChangeListener
 {
     private static final String TAG = PlayerFragment.class.getSimpleName();
     private static final String KEY_SONG_POSITION = "com.standandroid.last_position";
@@ -43,6 +45,7 @@ public class PlayerFragment extends Fragment implements MediaPlayer.OnPreparedLi
     private TextView     mEndTextSeekerBar;
     private Thread       mOnPreparedListenerThread;
     private MyMediaObserver mMediaObserver;
+    private ArrayList<TrackRowItem> mTrackRowItemsList;
 
     public PlayerFragment()
     {
@@ -76,11 +79,13 @@ public class PlayerFragment extends Fragment implements MediaPlayer.OnPreparedLi
         View view = inflater.inflate(R.layout.fragment_player, container, false);
 
         Intent intent = getActivity().getIntent();
-        Bundle extras = intent.getBundleExtra(TracksActivityFragment.KEY_TRACK_ROW_ITEM);
 
-        TrackRowItem item = extras.getParcelable(TracksActivityFragment.KEY_TRACK_ROW_ITEM);
+        mTrackRowItemsList = intent.getParcelableArrayListExtra(TracksActivityFragment.KEY_TRACK_ROW_LIST);
 
         String filename = intent.getStringExtra(TracksActivityFragment.KEY_ARTIST_BITMAP_FILE_NAME);
+        int position = intent.getIntExtra(TracksActivityFragment.KEY_TRACK_ROW_LIST_POSITION, 0);
+
+        TrackRowItem item = mTrackRowItemsList.get(position);
 
         if (item == null)
         {
@@ -155,7 +160,6 @@ public class PlayerFragment extends Fragment implements MediaPlayer.OnPreparedLi
             Toast.makeText(context, "Temporarily unable to play that track. Please try another.", Toast.LENGTH_LONG).show();
         }
 
-//        mPlayer.setOnPreparedListener(this);
         mPlayer.prepareAsync(); // prepare async to not block main thread
 
         //Set up a place to listen for it when it's ready to play to set up other things we need
@@ -165,22 +169,15 @@ public class PlayerFragment extends Fragment implements MediaPlayer.OnPreparedLi
     }
 
     @Override
-    public void onPrepared(MediaPlayer mp)
-    {
-        if (mPlayer == null)
-        {
-            Log.w(TAG, "Media player was null in onPrepared call");
-        }
-        else
-        {
-            mPlayer.start();
-        }
-    }
-
-    @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
     {
-        //NOOP for now
+        int duration = mPlayer.getDuration();
+        int position = mPlayer.getCurrentPosition();
+
+        float updatePercentage = ((float)position/duration);
+
+        int updateLocation = (int)(duration * updatePercentage / 1000);
+        mStartTextSeekerBar.setText(Utility.getTimeFormat(updateLocation));
     }
 
     @Override
@@ -227,15 +224,15 @@ public class PlayerFragment extends Fragment implements MediaPlayer.OnPreparedLi
     {
         private final WeakReference<ImageView> imageViewWeakReference;
 
-        public LoadAlbumBitmapTask(ImageView imageView) throws FileNotFoundException, IOException
+        public LoadAlbumBitmapTask(ImageView imageView) throws IOException
         {
-            imageViewWeakReference = new WeakReference<ImageView>(imageView);
+            imageViewWeakReference = new WeakReference<>(imageView);
         }
 
         @Override
         protected Bitmap doInBackground(String... params)
         {
-            String filename = (String) params[0];
+            String filename = params[0];
 
             Bitmap artistBitmap = null;
 
@@ -269,6 +266,8 @@ public class PlayerFragment extends Fragment implements MediaPlayer.OnPreparedLi
         }
     }
 
+
+
     class MyMediaObserver implements Runnable
     {
         private AtomicBoolean bStop = new AtomicBoolean(false);
@@ -285,14 +284,14 @@ public class PlayerFragment extends Fragment implements MediaPlayer.OnPreparedLi
             {
                 int seekLocation = getProgessForSeekBar();
 
-                mSeekBar.setProgress((int)seekLocation);
+                mSeekBar.setProgress(seekLocation);
 
-                mStartTextSeekerBar.setText(seekLocation/1000);
+                String textLocation = Integer.toString(seekLocation / 1000);
 
                 try
                 {
-                    //Update it four times a second
-                    Thread.sleep(250);
+                    //Update it five times a second
+                    Thread.sleep(200);
                 }
                 catch (InterruptedException e)
                 {
@@ -323,10 +322,10 @@ public class PlayerFragment extends Fragment implements MediaPlayer.OnPreparedLi
             duration /= 1000;
 
             //Set the initial position to 0
-            mStartTextSeekerBar.setText(Integer.toString(0));
+            mStartTextSeekerBar.setText(Utility.getTimeFormat(0));
 
             //set the duration of the end text for the seek bar
-            mEndTextSeekerBar.setText(Integer.toString(duration));
+            mEndTextSeekerBar.setText(Utility.getTimeFormat(duration));
 
             mMediaObserver = new MyMediaObserver();
 

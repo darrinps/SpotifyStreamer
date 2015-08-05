@@ -13,17 +13,19 @@ public class TrackRowItem implements Parcelable
     private String thumbnailUrl;
     private String albumName;
     private String trackName;
+    private String spotifyId;
     private String previewUrl;
     private String bigImageUrl;
     private String artistName;
 
 
-    public TrackRowItem(String thumbnailUrl, String bigImageUrl, String album_name, String track_name, String spotifyId, String artistName)
+    public TrackRowItem(String thumbnailUrl,  String album_name, String track_name, String spotifyId, String previewUrl, String bigImageUrl, String artistName)
     {
         this.thumbnailUrl = thumbnailUrl;
         this.albumName    = album_name;
         this.trackName    = track_name;
-        this.previewUrl   = spotifyId;
+        this.spotifyId    = spotifyId;
+        this.previewUrl   = previewUrl;
         this.bigImageUrl  = bigImageUrl;
         this.artistName   = artistName;
     }
@@ -33,6 +35,7 @@ public class TrackRowItem implements Parcelable
         thumbnailUrl = in.readString();
         albumName    = in.readString();
         trackName    = in.readString();
+        spotifyId    = in.readString();
         previewUrl   = in.readString();
         bigImageUrl  = in.readString();
         artistName   = in.readString();
@@ -44,6 +47,7 @@ public class TrackRowItem implements Parcelable
         dest.writeString(thumbnailUrl);
         dest.writeString(albumName);
         dest.writeString(trackName);
+        dest.writeString(spotifyId);
         dest.writeString(previewUrl);
         dest.writeString(bigImageUrl);
         dest.writeString(artistName);
@@ -107,6 +111,17 @@ public class TrackRowItem implements Parcelable
     public void setAlbumName(String albumName)
     {
         this.albumName = albumName;
+    }
+
+
+    public String getSpotifyId()
+    {
+        return spotifyId;
+    }
+
+    public void setSpotifyId(String spotifyId)
+    {
+        this.spotifyId = spotifyId;
     }
 
     public String getPreviewUrl()

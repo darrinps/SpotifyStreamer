@@ -45,7 +45,9 @@ public class TracksActivityFragment extends Fragment
     final static String TAG = TracksActivityFragment.class.getSimpleName();
     private static final String KEY_ITEMS_LIST = "keyitemslist";
     public static final String KEY_TRACK_ROW_ITEM = "com.standardandroid.track_row_item";
+    public static final String KEY_TRACK_ROW_LIST = "com.standardandroid.track_row_list";
     public static final String KEY_ARTIST_BITMAP_FILE_NAME = "com.standardandroid.artist_bitmap_file_name";
+    public static final String KEY_TRACK_ROW_LIST_POSITION = "com.standardandroid.track.row.list.position";
     private static final String mArtistBitmapFilename = "ArtistFilename";
     private LinearLayout mParentLayout;
     private TracksAdapter mTrackAdapter;
@@ -142,15 +144,11 @@ public class TracksActivityFragment extends Fragment
                 TrackRowItem item = (TrackRowItem)listView.getItemAtPosition(i);
 
                 //Kick off Player Activity
-                Intent oldIntent = getActivity().getIntent();
-                Bundle bundle = oldIntent.getExtras();
-
-                bundle.putParcelable(KEY_TRACK_ROW_ITEM, item);
-
                 Intent intent = new Intent(getActivity(), PlayerActivity.class);
                 intent.setExtrasClassLoader(TrackRowItem.class.getClassLoader());
-                intent.putExtra(KEY_TRACK_ROW_ITEM, bundle);
+                intent.putParcelableArrayListExtra(KEY_TRACK_ROW_LIST, mTrackRowItemList);
                 intent.putExtra(KEY_ARTIST_BITMAP_FILE_NAME, mArtistBitmapFilename);
+                intent.putExtra(KEY_TRACK_ROW_LIST_POSITION, i);
 
                 startActivity(intent);
             }
@@ -192,7 +190,7 @@ public class TracksActivityFragment extends Fragment
                     //No image for this one
 
 
-                    item = new TrackRowItem(null, null, album.name, track.name, track.preview_url, activity.getArtistName());
+                    item = new TrackRowItem(null, album.name, track.name, track.id, track.preview_url, null, activity.getArtistName());
                 }
                 else
                 {
@@ -215,7 +213,7 @@ public class TracksActivityFragment extends Fragment
                         }
                     }
 
-                    item = new TrackRowItem(urlAsString, bigImage, album.name, track.name, track.preview_url,activity.getArtistName() );
+                    item = new TrackRowItem(urlAsString, album.name, track.name, track.id, track.preview_url, bigImage, activity.getArtistName() );
                 }
 
                 mTrackAdapter.add(item);
