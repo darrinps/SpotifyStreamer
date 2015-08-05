@@ -13,15 +13,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import org.w3c.dom.Text;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -32,7 +28,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * A placeholder fragment containing a simple view.
  */
-public class PlayerFragment extends Fragment implements MediaPlayer.OnPreparedListener
+public class PlayerFragment extends Fragment implements MediaPlayer.OnPreparedListener, SeekBar.OnSeekBarChangeListener
 {
     private static final String TAG = PlayerFragment.class.getSimpleName();
     private static final String KEY_SONG_POSITION = "com.standandroid.last_position";
@@ -45,13 +41,8 @@ public class PlayerFragment extends Fragment implements MediaPlayer.OnPreparedLi
     private SeekBar      mSeekBar;
     private TextView     mStartTextSeekerBar;
     private TextView     mEndTextSeekerBar;
-    private PlayOrPause  mPlayOrPause;
-
-
-    public enum PlayOrPause
-    {
-        PLAY, PAUSE
-    }
+    private Thread       mOnPreparedListenerThread;
+    private MyMediaObserver mMediaObserver;
 
     public PlayerFragment()
     {
@@ -106,19 +97,28 @@ public class PlayerFragment extends Fragment implements MediaPlayer.OnPreparedLi
         mEndTextSeekerBar   = (TextView) view.findViewById(R.id.seeker_bar_end_text_id);
         mPlayOrPauseButton = (ImageButton)view.findViewById(R.id.play_pause_button_id);
 
-        //TODO: Set up state enum and toggle
+        mSeekBar.setOnSeekBarChangeListener(this);
+
         mPlayOrPauseButton.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View v)
             {
-                if(mPlayOrPause == PlayOrPause.PAUSE)
+                if(mPlayer.isPlaying())
                 {
-                    //Start the payer
+                    //Pause the player
+                    mPlayer.pause();
+
+                    //Reset the icon
+                    mPlayOrPauseButton.setImageResource(android.R.drawable.ic_media_play);
                 }
                 else
                 {
-                    //Pause the player
+                    //Start the player
+                    mPlayer.start();
+
+                    //Reset the icon
+                    mPlayOrPauseButton.setImageResource(android.R.drawable.ic_media_pause);
                 }
             }
         });
@@ -155,7 +155,7 @@ public class PlayerFragment extends Fragment implements MediaPlayer.OnPreparedLi
             Toast.makeText(context, "Temporarily unable to play that track. Please try another.", Toast.LENGTH_LONG).show();
         }
 
-        mPlayer.setOnPreparedListener(this);
+//        mPlayer.setOnPreparedListener(this);
         mPlayer.prepareAsync(); // prepare async to not block main thread
 
         //Set up a place to listen for it when it's ready to play to set up other things we need
@@ -175,6 +175,50 @@ public class PlayerFragment extends Fragment implements MediaPlayer.OnPreparedLi
         {
             mPlayer.start();
         }
+    }
+
+    @Override
+    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
+    {
+        //NOOP for now
+    }
+
+    @Override
+    public void onStartTrackingTouch(SeekBar seekBar)
+    {
+        if(mPlayer.isPlaying())
+        {
+            mPlayer.pause();
+        }
+
+        mPlayer.setOnPreparedListener(new MyOnPreparedListener());
+    }
+
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar)
+    {
+        int position = mSeekBar.getProgress();
+
+        //Now the position is like a percentage so calculate where we need to seek to.
+        int duration = mPlayer.getDuration();
+        int seekTo = (int)(duration * (position / 100f));
+
+        mSeekBar.setProgress(position);
+
+        if(mPlayer.isPlaying())
+        {
+            mPlayer.pause();
+            mPlayer.seekTo(seekTo);
+            mPlayer.start();
+        }
+        else
+        {
+            mPlayer.seekTo(seekTo);
+            mPlayer.start();
+        }
+
+        //Reset the icon
+        mPlayOrPauseButton.setImageResource(android.R.drawable.ic_media_pause);
     }
 
     //First is the type you are passing doInBackground via the execute().
@@ -239,12 +283,7 @@ public class PlayerFragment extends Fragment implements MediaPlayer.OnPreparedLi
         {
             while (!bStop.get())
             {
-                int position = mPlayer.getCurrentPosition();
-                int duration = mPlayer.getDuration();
-
-                float seekLocation = ((float)position / duration) * 100f;
-
-//                Log.d(TAG, "Position: " + position + " SeekLocation: " + seekLocation);
+                int seekLocation = getProgessForSeekBar();
 
                 mSeekBar.setProgress((int)seekLocation);
 
@@ -266,6 +305,15 @@ public class PlayerFragment extends Fragment implements MediaPlayer.OnPreparedLi
         @Override
         public void onPrepared(MediaPlayer mp)
         {
+            //Stop (politely) the current running thread if it's still alive
+            if(mOnPreparedListenerThread != null && mOnPreparedListenerThread.isAlive())
+            {
+                if(mMediaObserver != null)
+                {
+                    mMediaObserver.bStop = new AtomicBoolean(true);
+                }
+            }
+
             //Get the length of the sample (just in case they can vary
             int duration = mPlayer.getDuration();
 
@@ -278,17 +326,30 @@ public class PlayerFragment extends Fragment implements MediaPlayer.OnPreparedLi
             //set the duration of the end text for the seek bar
             mEndTextSeekerBar.setText(Integer.toString(duration));
 
-            MyMediaObserver observer = new MyMediaObserver();
+            mMediaObserver = new MyMediaObserver();
 
             //Set up a listener for it to call when it completes
-            mPlayer.setOnCompletionListener(new MyOnCompletionListener(observer));
+            mPlayer.setOnCompletionListener(new MyOnCompletionListener(mMediaObserver));
 
-            mSeekBar.setProgress(0);
+            mSeekBar.setProgress(getProgessForSeekBar());
 
-            mPlayer.start();
+            //Comment out to have them hit start before it starts to play
+//            mPlayer.start();
 
-            new Thread(observer).start();
+            //Save it off so we can stop it later
+            mOnPreparedListenerThread = new Thread(mMediaObserver);
+
+            mOnPreparedListenerThread.start();
         }
+    }
+
+    private int getProgessForSeekBar()
+    {
+        int position = mPlayer.getCurrentPosition();
+        int duration = mPlayer.getDuration();
+        float seekPosition = ((float)position / duration) * 100f;
+
+        return (int)seekPosition;
     }
 
     class MyOnCompletionListener implements MediaPlayer.OnCompletionListener
