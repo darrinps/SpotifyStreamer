@@ -5,6 +5,8 @@ package udacity.standardandroid.com.spotifystreamer;
  */
 public class Utility
 {
+    private static String mCountryCode;
+
     static public String getTimeFormat(int seconds)
     {
         int minutes = seconds / 60;
@@ -22,5 +24,15 @@ public class Utility
         buff.append(secondsRemaining);
 
         return buff.toString();
+    }
+
+    public static String getCountryCode()
+    {
+        return mCountryCode;
+    }
+
+    public static void setCountryCode(String code)
+    {
+        mCountryCode = code.toUpperCase();
     }
 }

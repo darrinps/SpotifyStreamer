@@ -75,19 +75,16 @@
 
                 <ImageButton
                     android:id="@+id/previous_button_id"
-                    android:background="@android:drawable/ic_media_previous"
                     android:layout_alignParentLeft="true"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
                 <ImageButton
                     android:id="@+id/play_pause_button_id"
-                    android:background="@android:drawable/ic_media_play"
                     android:layout_centerInParent="true"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
                 <ImageButton
                     android:id="@+id/next_button_id"
-                    android:background="@android:drawable/ic_media_next"
                     android:layout_alignParentRight="true"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />

@@ -258,7 +258,17 @@ public class TracksActivityFragment extends Fragment
 //            Log.d(TAG, "Retrieving tracks for ID: " + spotifyId);
 
             Map<String, Object> options = new HashMap<>();
-            options.put("country", "US");
+
+            String countryCode = Utility.getCountryCode();
+
+            if(countryCode == null || countryCode.length() < 2 )
+            {
+                options.put("country", "US");
+            }
+            else
+            {
+                options.put("country", countryCode);
+            }
 
             Tracks tracks = null;
 
@@ -342,15 +352,15 @@ public class TracksActivityFragment extends Fragment
         {
             try
             {
-            //Write file to phone so we don't have to reload it
-            FileOutputStream stream = getActivity().openFileOutput(mArtistBitmapFilename, Context.MODE_PRIVATE);
-            mImageToStore.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                //Write file to phone so we don't have to reload it in the next activity...
+                FileOutputStream stream = getActivity().openFileOutput(mArtistBitmapFilename, Context.MODE_PRIVATE);
+                mImageToStore.compress(Bitmap.CompressFormat.PNG, 100, stream);
 
-            //Cleanup
-            stream.close();
+                //Cleanup
+                stream.close();
 
-            //We still need it for the background and Picasso will gripe if we clean it up
-//            artistBitmap.recycle();
+                //We still need it for the background and Picasso will gripe if we clean it up
+//              artistBitmap.recycle();
             }
             catch (Exception e)
             {

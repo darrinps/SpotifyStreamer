@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.AsyncTask;
@@ -19,8 +21,10 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
+
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -32,20 +36,25 @@ import udacity.standardandroid.com.spotifystreamer.TrackRowItem;
  */
 public class PlayerFragment extends Fragment implements SeekBar.OnSeekBarChangeListener
 {
-    private static final String TAG = PlayerFragment.class.getSimpleName();
-    private static final String KEY_SONG_POSITION = "com.standandroid.last_position";
-    private MediaPlayer  mPlayer;
-    private TextView     mArtistText;
-    private TextView     mAlbumText;
-    private TextView     mTrackText;
-    private ImageView    mImageView;
-    private ImageButton  mPlayOrPauseButton;
-    private SeekBar      mSeekBar;
-    private TextView     mStartTextSeekerBar;
-    private TextView     mEndTextSeekerBar;
-    private Thread       mOnPreparedListenerThread;
-    private MyMediaObserver mMediaObserver;
+    private static final String     TAG = PlayerFragment.class.getSimpleName();
+    private static final String     KEY_SONG_POSITION = "com.standandroid.last_position";
+    private MediaPlayer             mPlayer;
+    private TextView                mArtistText;
+    private TextView                mAlbumText;
+    private TextView                mTrackText;
+    private ImageView               mImageView;
+    private ImageButton             mPlayOrPauseButton;
+    private ImageButton             mPreviousButton;
+    private ImageButton             mNextButton;
+    private SeekBar                 mSeekBar;
+    private TextView                mStartTextSeekerBar;
+    private TextView                mEndTextSeekerBar;
+    private Thread                  mOnPreparedListenerThread;
+    private MyMediaObserver         mMediaObserver;
     private ArrayList<TrackRowItem> mTrackRowItemsList;
+    private int                     mTrackRowIndex;
+    private Target                  mLoadTarget;
+
 
     public PlayerFragment()
     {
@@ -83,9 +92,9 @@ public class PlayerFragment extends Fragment implements SeekBar.OnSeekBarChangeL
         mTrackRowItemsList = intent.getParcelableArrayListExtra(TracksActivityFragment.KEY_TRACK_ROW_LIST);
 
         String filename = intent.getStringExtra(TracksActivityFragment.KEY_ARTIST_BITMAP_FILE_NAME);
-        int position = intent.getIntExtra(TracksActivityFragment.KEY_TRACK_ROW_LIST_POSITION, 0);
+        mTrackRowIndex = intent.getIntExtra(TracksActivityFragment.KEY_TRACK_ROW_LIST_POSITION, 0);
 
-        TrackRowItem item = mTrackRowItemsList.get(position);
+        TrackRowItem item = mTrackRowItemsList.get(mTrackRowIndex);
 
         if (item == null)
         {
@@ -93,23 +102,69 @@ public class PlayerFragment extends Fragment implements SeekBar.OnSeekBarChangeL
             return view;
         }
 
-        mArtistText = (TextView) view.findViewById(R.id.artist_name_id);
-        mAlbumText  = (TextView) view.findViewById(R.id.album_name_id);
-        mTrackText  = (TextView) view.findViewById(R.id.track_name_id);
-        mImageView  = (ImageView) view.findViewById(R.id.image_id);
-        mSeekBar    = (SeekBar) view.findViewById(R.id.seek_bar_id);
+        mArtistText         = (TextView) view.findViewById(R.id.artist_name_id);
+        mAlbumText          = (TextView) view.findViewById(R.id.album_name_id);
+        mTrackText          = (TextView) view.findViewById(R.id.track_name_id);
+        mImageView          = (ImageView) view.findViewById(R.id.image_id);
+        mSeekBar            = (SeekBar) view.findViewById(R.id.seek_bar_id);
         mStartTextSeekerBar = (TextView) view.findViewById(R.id.seeker_bar_start_text_id);
         mEndTextSeekerBar   = (TextView) view.findViewById(R.id.seeker_bar_end_text_id);
-        mPlayOrPauseButton = (ImageButton)view.findViewById(R.id.play_pause_button_id);
+        mPlayOrPauseButton  = (ImageButton)view.findViewById(R.id.play_pause_button_id);
+        mPreviousButton     = (ImageButton)view.findViewById(R.id.previous_button_id);
+        mNextButton         = (ImageButton)view.findViewById(R.id.next_button_id);
 
         mSeekBar.setOnSeekBarChangeListener(this);
+
+        mPreviousButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                //Pop up a spinner (stop it in the task that loads the song)
+                //Pull in the next song.
+                if (mTrackRowIndex == 0)
+                {
+                    mTrackRowIndex = mTrackRowItemsList.size() - 1;
+                }
+                else
+                {
+                    mTrackRowIndex--;
+                }
+
+                TrackRowItem item = mTrackRowItemsList.get(mTrackRowIndex);
+
+                handleItem(item, true);
+            }
+        });
+
+        mNextButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                //Pop up a spinner (stop it in the task that loads the song)
+                //Pull in the next song.
+                if (mTrackRowIndex == mTrackRowItemsList.size() - 1)
+                {
+                    mTrackRowIndex = 0;
+                }
+                else
+                {
+                    mTrackRowIndex++;
+                }
+
+                TrackRowItem item = mTrackRowItemsList.get(mTrackRowIndex);
+
+                handleItem(item, true);
+            }
+        });
 
         mPlayOrPauseButton.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View v)
             {
-                if(mPlayer.isPlaying())
+                if (mPlayer.isPlaying())
                 {
                     //Pause the player
                     mPlayer.pause();
@@ -139,31 +194,8 @@ public class PlayerFragment extends Fragment implements SeekBar.OnSeekBarChangeL
             Log.w(TAG, "Couldn't load/set the image");
         }
 
-        mArtistText.setText(item.getArtistName());
-        mAlbumText.setText(item.getAlbumName());
-        mTrackText.setText(item.getTrackName());
-
-        String url = item.getPreviewUrl();
-        mPlayer = new MediaPlayer();
-        mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-
-        try
-        {
-            mPlayer.setDataSource(url);
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-
-            Log.e(TAG, "Player died trying to set the data source with URL: " + url);
-            Context context = getActivity().getApplicationContext();
-            Toast.makeText(context, "Temporarily unable to play that track. Please try another.", Toast.LENGTH_LONG).show();
-        }
-
-        mPlayer.prepareAsync(); // prepare async to not block main thread
-
-        //Set up a place to listen for it when it's ready to play to set up other things we need
-        mPlayer.setOnPreparedListener(new MyOnPreparedListener());
+        //Now finish up using the item but don't load the bitmap from it since that's already done
+        handleItem(item,false);
 
         return view;
     }
@@ -337,6 +369,11 @@ public class PlayerFragment extends Fragment implements SeekBar.OnSeekBarChangeL
             //Comment out to have them hit start before it starts to play
 //            mPlayer.start();
 
+            //Show as ready
+            mPlayOrPauseButton.setImageResource(android.R.drawable.ic_media_play);
+            mPreviousButton.setImageResource(android.R.drawable.ic_media_previous);
+            mNextButton.setImageResource(android.R.drawable.ic_media_next);
+
             //Save it off so we can stop it later
             mOnPreparedListenerThread = new Thread(mMediaObserver);
 
@@ -368,5 +405,77 @@ public class PlayerFragment extends Fragment implements SeekBar.OnSeekBarChangeL
             mObserver.stop();
             mSeekBar.setProgress(0);
         }
+    }
+
+    private void handleItem(TrackRowItem item, boolean bLoadBitmap)
+    {
+        if(mPlayer != null)
+        {
+            if(mPlayer.isPlaying())
+            {
+                mPlayer.pause();
+                mPlayer.stop();
+                mPlayer = null;
+            }
+        }
+
+        mArtistText.setText(item.getArtistName());
+        mAlbumText.setText(item.getAlbumName());
+        mTrackText.setText(item.getTrackName());
+
+        String url = item.getPreviewUrl();
+        mPlayer = new MediaPlayer();
+        mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+
+        try
+        {
+            mPlayer.setDataSource(url);
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+
+            Log.e(TAG, "Player died trying to set the data source with URL: " + url);
+            Context context = getActivity().getApplicationContext();
+            Toast.makeText(context, "Temporarily unable to play that track. Please try another.", Toast.LENGTH_LONG).show();
+        }
+
+        mPlayer.prepareAsync(); // prepare async to not block main thread
+
+        //Set up a place to listen for it when it's ready to play to set up other things we need
+        mPlayer.setOnPreparedListener(new MyOnPreparedListener());
+
+        if(bLoadBitmap && item.hasBigImage())
+        {
+            //push it to the background
+            loadBitmap(item.getBigImageUrl());
+        }
+    }
+
+    public void loadBitmap(String url)
+    {
+        if (mLoadTarget == null) mLoadTarget = new Target()
+        {
+            @Override
+            public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from)
+            {
+                Drawable drawable = new BitmapDrawable(getResources(), bitmap);
+                mImageView.setImageDrawable(drawable);
+            }
+
+            @Override
+            public void onBitmapFailed(Drawable errorDrawable)
+            {
+                //NOOP
+            }
+
+            @Override
+            public void onPrepareLoad(Drawable placeHolderDrawable)
+            {
+                //NOOP
+            }
+        };
+
+        Picasso.with(getActivity()).load(url).into(mLoadTarget);
     }
 }
