@@ -105,12 +105,24 @@ public class TracksActivityFragment extends Fragment
 
             //Grab the correct ID to query Spotify with
             Intent intent = getActivity().getIntent();
-            Bundle extras = intent.getExtras();
 
-            String spotifyId = extras.getString(Intent.EXTRA_TEXT);
 
-            //The params ARE sent in the execute though
-            task.execute(spotifyId);
+            //With the Master Detail flow, the intent can be empoty since we dynamically create the
+            //Activity without it.
+            if (intent == null || intent.getData() == null)
+            {
+                //NOOP
+            }
+            else
+            {
+
+                Bundle extras = intent.getExtras();
+
+                String spotifyId = extras.getString(Intent.EXTRA_TEXT);
+
+                //The params ARE sent in the execute though
+                task.execute(spotifyId);
+            }
         }
         else
         {

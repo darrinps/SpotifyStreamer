@@ -6,6 +6,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
+
+//Akin to the DetailActivity in Sunshine
+
 public class TracksActivity extends AppCompatActivity
 {
     private String mArtistName;
@@ -15,6 +18,12 @@ public class TracksActivity extends AppCompatActivity
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tracks);
+
+        //TRYING THIS NEW CODE
+        if(savedInstanceState == null)
+        {
+            getSupportFragmentManager().beginTransaction().add(R.id.tracks_list_container_like_weather_detail, new TracksActivityFragment()).commit();
+        }
 
         ActionBar actionBar = getSupportActionBar();
 

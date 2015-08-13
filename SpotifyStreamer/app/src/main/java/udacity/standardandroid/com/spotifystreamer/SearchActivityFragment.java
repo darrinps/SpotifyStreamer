@@ -33,6 +33,7 @@ public class SearchActivityFragment extends Fragment
 {
     private static final String TAG = SearchActivityFragment.class.getSimpleName();
     public  static final String ARTIST_NAME = "com.standardandroid.spotifystreamer.artistname";
+    public  static final String SPOTIFY_ID  = "com.standardandroid.spotifystreamer.spotifyid";
     private ArrayList<SearchRowItem> mSearchRowItemList = new ArrayList<>();
     private static final String KEY_ITEMS_LIST = "keyitemslist";
     private static final String KEY_LAST_TEXT  = "keylasttext";
@@ -41,6 +42,19 @@ public class SearchActivityFragment extends Fragment
 
     public SearchActivityFragment()
     {
+    }
+
+    /**
+     * A callback interface that all activities containing this fragment must
+     * implement. This mechanism allows activities to be notified of item
+     * selections.
+     */
+    public interface Callback
+    {
+        /**
+         * DetailFragmentCallback for when an item has been selected.
+         */
+        public void onArtistSelected(String artistName, String spotifyArtistId);
     }
 
     @Override
@@ -91,12 +105,7 @@ public class SearchActivityFragment extends Fragment
                 //Note getActivity() available in fragments to get the context
                 //toast.makeText(getActivity(), textString, Toast.LENGTH_LONG).show();
 
-                //Kick off detail Activity
-                Intent intent = new Intent(getActivity(), TracksActivity.class);
-                intent.putExtra(Intent.EXTRA_TEXT, item.getSpotifyId());
-                intent.putExtra(ARTIST_NAME, item.getArtistName());
-
-                startActivity(intent);
+                ((Callback)getActivity()).onArtistSelected(item.getArtistName(), item.getSpotifyId());
             }
         });
 

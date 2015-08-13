@@ -3,6 +3,7 @@ package udacity.standardandroid.com.spotifystreamer;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,16 +14,34 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
 
-public class SearchActivity extends AppCompatActivity
+public class SearchActivity extends AppCompatActivity implements SearchActivityFragment.Callback
 {
     private String countryCode;
+    private boolean mTwoPane;
+    private static final String DETAILFRAGMENT_TAG = "DFTAG";
 
     public static final String TAG = SearchActivity.class.getName();
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_search);
+        setContentView(R.layout.activity_main);
+
+        if(findViewById(R.id.tracks_list_container_like_weather_detail)== null)
+        {
+            //Single pane mode
+            mTwoPane = false;
+        }
+        else
+        {
+            mTwoPane = true;
+
+            if(savedInstanceState == null)
+            {
+                getSupportFragmentManager().beginTransaction().replace(R.id.tracks_list_container_like_weather_detail, new TracksActivityFragment(), DETAILFRAGMENT_TAG).commit();
+            }
+        }
     }
 
 
@@ -102,5 +121,34 @@ public class SearchActivity extends AppCompatActivity
         // show it
         alertDialog.show();
 
+    }
+
+    public boolean isTwoPane()
+    {
+        return mTwoPane;
+    }
+
+    @Override
+    public void onArtistSelected(String artistName, String spotifyArtistId)
+    {
+        if(mTwoPane)
+        {
+            Bundle args = new Bundle();
+            args.putString(SearchActivityFragment.ARTIST_NAME, artistName);
+            args.putString(SearchActivityFragment.SPOTIFY_ID, spotifyArtistId);
+
+            TracksActivityFragment fragment = new TracksActivityFragment();
+            fragment.setArguments(args);
+
+            getSupportFragmentManager().beginTransaction().replace(R.id.tracks_list_container_like_weather_detail, fragment, DETAILFRAGMENT_TAG).commit();
+        }
+        else
+        {
+            //Kick off detail Activity
+            Intent intent = new Intent(this, TracksActivity.class);
+            intent.putExtra(SearchActivityFragment.SPOTIFY_ID, spotifyArtistId);
+            intent.putExtra(SearchActivityFragment.ARTIST_NAME, artistName);
+
+            startActivity(intent);        }
     }
 }
