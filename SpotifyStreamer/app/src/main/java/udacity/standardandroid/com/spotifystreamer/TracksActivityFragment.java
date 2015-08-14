@@ -53,6 +53,7 @@ public class TracksActivityFragment extends Fragment
     private TracksAdapter mTrackAdapter;
     private Target mLoadTarget;
     private ArrayList<TrackRowItem> mTrackRowItemList = new ArrayList<>();
+    private String mArtistName;
 
     public TracksActivityFragment()
     {
@@ -107,18 +108,33 @@ public class TracksActivityFragment extends Fragment
             Intent intent = getActivity().getIntent();
 
 
-            //With the Master Detail flow, the intent can be empoty since we dynamically create the
+            //With the Master Detail flow, the intent can be empty since we dynamically create the
             //Activity without it.
             if (intent == null || intent.getData() == null)
             {
-                //NOOP
+                Bundle arguments = getArguments();
+
+                if(arguments == null)
+                {
+                    Log.w(TAG, "Arguments were null");
+                }
+                else
+                {
+                    String spotifyId = arguments.getString(SearchActivityFragment.SPOTIFY_ID);
+                    mArtistName = arguments.getString(SearchActivityFragment.ARTIST_NAME);
+
+                    //The params ARE sent in the execute though
+                    task.execute(spotifyId);
+
+                }
             }
             else
             {
 
                 Bundle extras = intent.getExtras();
 
-                String spotifyId = extras.getString(Intent.EXTRA_TEXT);
+                String spotifyId = extras.getString(SearchActivityFragment.SPOTIFY_ID);
+                mArtistName = extras.getString(SearchActivityFragment.ARTIST_NAME);
 
                 //The params ARE sent in the execute though
                 task.execute(spotifyId);
@@ -195,14 +211,11 @@ public class TracksActivityFragment extends Fragment
 
                 AlbumSimple album = track.album;
 
-                TracksActivity activity = (TracksActivity)getActivity();
-
                 if (album.images.size() == 0)
                 {
                     //No image for this one
 
-
-                    item = new TrackRowItem(null, album.name, track.name, track.id, track.preview_url, null, activity.getArtistName());
+                    item = new TrackRowItem(null, album.name, track.name, track.id, track.preview_url, null, mArtistName);
                 }
                 else
                 {
@@ -225,7 +238,7 @@ public class TracksActivityFragment extends Fragment
                         }
                     }
 
-                    item = new TrackRowItem(urlAsString, album.name, track.name, track.id, track.preview_url, bigImage, activity.getArtistName() );
+                    item = new TrackRowItem(urlAsString, album.name, track.name, track.id, track.preview_url, bigImage, mArtistName );
                 }
 
                 mTrackAdapter.add(item);
