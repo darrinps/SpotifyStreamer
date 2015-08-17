@@ -1,5 +1,6 @@
 package udacity.standardandroid.com.spotifystreamer;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -9,12 +10,13 @@ import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.AsyncTask;
-import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -29,15 +31,17 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
-import udacity.standardandroid.com.spotifystreamer.TrackRowItem;
 
 /**
  * A placeholder fragment containing a simple view.
  */
-public class PlayerFragment extends Fragment implements SeekBar.OnSeekBarChangeListener
+public class PlayerFragment extends DialogFragment implements SeekBar.OnSeekBarChangeListener
 {
     private static final String     TAG = PlayerFragment.class.getSimpleName();
     private static final String     KEY_SONG_POSITION = "com.standandroid.last_position";
+    private static final String     KEY_ARRAY_LIST = "com.standardandroid.array_list";
+    private static final String     KEY_ITEM_INDEX = "com.standardandroid.item_index";
+    private static final String     KEY_FILE_NAME = "com.standardandroid.file_name";
     private MediaPlayer             mPlayer;
     private TextView                mArtistText;
     private TextView                mAlbumText;
@@ -60,6 +64,22 @@ public class PlayerFragment extends Fragment implements SeekBar.OnSeekBarChangeL
     {
     }
 
+    public static PlayerFragment newInstance(ArrayList arrayList, int index, String bmpFileName)
+    {
+        PlayerFragment f = new PlayerFragment();
+
+        // Supply num input as an argument.
+        Bundle args = new Bundle();
+
+        args.putParcelableArrayList(KEY_ARRAY_LIST, arrayList);
+        args.putInt(KEY_ITEM_INDEX, index);
+        args.putString(KEY_FILE_NAME, bmpFileName);
+
+        f.setArguments(args);
+
+        return f;
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
@@ -69,6 +89,14 @@ public class PlayerFragment extends Fragment implements SeekBar.OnSeekBarChangeL
         {
             //We've got data saved. Reconstitute it
         }
+    }
+
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState)
+    {
+        Dialog dialog = super.onCreateDialog(savedInstanceState);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        return dialog;
     }
 
 
@@ -91,16 +119,32 @@ public class PlayerFragment extends Fragment implements SeekBar.OnSeekBarChangeL
 
         mTrackRowItemsList = intent.getParcelableArrayListExtra(TracksActivityFragment.KEY_TRACK_ROW_LIST);
 
-        String filename = intent.getStringExtra(TracksActivityFragment.KEY_ARTIST_BITMAP_FILE_NAME);
-        mTrackRowIndex = intent.getIntExtra(TracksActivityFragment.KEY_TRACK_ROW_LIST_POSITION, 0);
+        String filename;
+        TrackRowItem item;
 
-        TrackRowItem item = mTrackRowItemsList.get(mTrackRowIndex);
+        if(mTrackRowItemsList == null)
+        {
+            mTrackRowItemsList = (ArrayList<TrackRowItem>) getArguments().get(KEY_ARRAY_LIST);
+            filename = (String) getArguments().get(KEY_FILE_NAME);
+            mTrackRowIndex = (int)getArguments().get(KEY_ITEM_INDEX);
+
+            item = mTrackRowItemsList.get(mTrackRowIndex);
+        }
+        else
+        {
+            filename = intent.getStringExtra(TracksActivityFragment.KEY_ARTIST_BITMAP_FILE_NAME);
+            mTrackRowIndex = intent.getIntExtra(TracksActivityFragment.KEY_TRACK_ROW_LIST_POSITION, 0);
+
+            item = mTrackRowItemsList.get(mTrackRowIndex);
+        }
 
         if (item == null)
         {
             Log.w(TAG, "TrackRowItem was null.");
             return view;
         }
+
+        item.getBigImageUrl();
 
         mArtistText         = (TextView) view.findViewById(R.id.artist_name_id);
         mAlbumText          = (TextView) view.findViewById(R.id.album_name_id);

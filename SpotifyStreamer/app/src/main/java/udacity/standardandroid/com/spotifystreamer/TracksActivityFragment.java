@@ -7,8 +7,8 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,7 +21,6 @@ import android.widget.Toast;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
-import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -81,7 +80,8 @@ public class TracksActivityFragment extends Fragment
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(LayoutInflater inflater,
+                             ViewGroup container,
                              Bundle savedInstanceState)
     {
         mTrackAdapter = new TracksAdapter(inflater.getContext(), R.layout.list_item_track, new ArrayList<TrackRowItem>());
@@ -110,7 +110,7 @@ public class TracksActivityFragment extends Fragment
 
             //With the Master Detail flow, the intent can be empty since we dynamically create the
             //Activity without it.
-            if (intent == null || intent.getData() == null)
+            if (intent == null || intent.getExtras() == null)
             {
                 Bundle arguments = getArguments();
 
@@ -171,14 +171,37 @@ public class TracksActivityFragment extends Fragment
             {
                 TrackRowItem item = (TrackRowItem)listView.getItemAtPosition(i);
 
-                //Kick off Player Activity
-                Intent intent = new Intent(getActivity(), PlayerActivity.class);
-                intent.setExtrasClassLoader(TrackRowItem.class.getClassLoader());
-                intent.putParcelableArrayListExtra(KEY_TRACK_ROW_LIST, mTrackRowItemList);
-                intent.putExtra(KEY_ARTIST_BITMAP_FILE_NAME, mArtistBitmapFilename);
-                intent.putExtra(KEY_TRACK_ROW_LIST_POSITION, i);
+                android.support.v4.app.FragmentManager fragMan = getFragmentManager();
 
-                startActivity(intent);
+                if(SearchActivity.isTwoPane())
+                {
+                    PlayerFragment fragment = new PlayerFragment();
+                    fragment.show(fragMan, "dialog");
+                }
+                else
+                {
+                    PlayerFragment fragment = PlayerFragment.newInstance(mTrackRowItemList, i, mArtistBitmapFilename);
+
+                    // The device is smaller, so show the fragment fullscreen
+                    FragmentTransaction transaction = fragMan.beginTransaction();
+
+                    // For a little polish, specify a transition animation
+                    transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+
+                    // To make it fullscreen, use the 'content' root view as the container
+                    // for the fragment, which is always the root view for the activity
+                    transaction.add(android.R.id.content, fragment).addToBackStack(null).commit();
+
+                    //Kick off Player Activity
+//                    Intent intent = new Intent(getActivity(), PlayerActivity.class);
+//                    intent.setExtrasClassLoader(TrackRowItem.class.getClassLoader());
+//                    intent.putParcelableArrayListExtra(KEY_TRACK_ROW_LIST, mTrackRowItemList);
+//                    intent.putExtra(KEY_ARTIST_BITMAP_FILE_NAME, mTrackRowItemList);
+//                    intent.putExtra(KEY_TRACK_ROW_LIST_POSITION, i);
+
+//                    startActivity(intent);
+                }
+
             }
         });
 

@@ -17,7 +17,7 @@ import android.widget.EditText;
 public class SearchActivity extends AppCompatActivity implements SearchActivityFragment.Callback
 {
     private String countryCode;
-    private boolean mTwoPane;
+    private static boolean mTwoPane;
     private static final String DETAILFRAGMENT_TAG = "DFTAG";
 
     public static final String TAG = SearchActivity.class.getName();
@@ -123,11 +123,6 @@ public class SearchActivity extends AppCompatActivity implements SearchActivityF
 
     }
 
-    public boolean isTwoPane()
-    {
-        return mTwoPane;
-    }
-
     @Override
     public void onArtistSelected(String artistName, String spotifyArtistId)
     {
@@ -150,5 +145,10 @@ public class SearchActivity extends AppCompatActivity implements SearchActivityF
             intent.putExtra(SearchActivityFragment.ARTIST_NAME, artistName);
 
             startActivity(intent);        }
+    }
+
+    public static boolean isTwoPane()
+    {
+        return mTwoPane;
     }
 }
