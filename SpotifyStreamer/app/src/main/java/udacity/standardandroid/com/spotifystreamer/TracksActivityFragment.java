@@ -175,7 +175,7 @@ public class TracksActivityFragment extends Fragment
 
                 if(SearchActivity.isTwoPane())
                 {
-                    PlayerFragment fragment = new PlayerFragment();
+                    PlayerFragment fragment = PlayerFragment.newInstance(mTrackRowItemList, i, mArtistBitmapFilename);
                     fragment.show(fragMan, "dialog");
                 }
                 else
@@ -191,15 +191,6 @@ public class TracksActivityFragment extends Fragment
                     // To make it fullscreen, use the 'content' root view as the container
                     // for the fragment, which is always the root view for the activity
                     transaction.add(android.R.id.content, fragment).addToBackStack(null).commit();
-
-                    //Kick off Player Activity
-//                    Intent intent = new Intent(getActivity(), PlayerActivity.class);
-//                    intent.setExtrasClassLoader(TrackRowItem.class.getClassLoader());
-//                    intent.putParcelableArrayListExtra(KEY_TRACK_ROW_LIST, mTrackRowItemList);
-//                    intent.putExtra(KEY_ARTIST_BITMAP_FILE_NAME, mTrackRowItemList);
-//                    intent.putExtra(KEY_TRACK_ROW_LIST_POSITION, i);
-
-//                    startActivity(intent);
                 }
 
             }

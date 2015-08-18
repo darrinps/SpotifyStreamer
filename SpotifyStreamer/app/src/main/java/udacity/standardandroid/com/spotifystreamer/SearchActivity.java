@@ -12,6 +12,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
 public class SearchActivity extends AppCompatActivity implements SearchActivityFragment.Callback
@@ -136,6 +137,11 @@ public class SearchActivity extends AppCompatActivity implements SearchActivityF
             fragment.setArguments(args);
 
             getSupportFragmentManager().beginTransaction().replace(R.id.tracks_list_container_like_weather_detail, fragment, DETAILFRAGMENT_TAG).commit();
+
+            //Get rid of that Pesky keyboard once we select
+            final EditText editText = (EditText)findViewById(R.id.search_edittext);
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);
         }
         else
         {
