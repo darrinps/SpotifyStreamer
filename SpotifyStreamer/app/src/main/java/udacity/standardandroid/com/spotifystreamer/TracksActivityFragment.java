@@ -130,7 +130,6 @@ public class TracksActivityFragment extends Fragment
             }
             else
             {
-
                 Bundle extras = intent.getExtras();
 
                 String spotifyId = extras.getString(SearchActivityFragment.SPOTIFY_ID);

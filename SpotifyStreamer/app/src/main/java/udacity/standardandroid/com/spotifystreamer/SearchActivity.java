@@ -47,14 +47,16 @@ public class SearchActivity extends AppCompatActivity implements SearchActivityF
 
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+    public boolean onCreateOptionsMenu(Menu menu)
+    {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_search, menu);
         return true;
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
@@ -150,7 +152,8 @@ public class SearchActivity extends AppCompatActivity implements SearchActivityF
             intent.putExtra(SearchActivityFragment.SPOTIFY_ID, spotifyArtistId);
             intent.putExtra(SearchActivityFragment.ARTIST_NAME, artistName);
 
-            startActivity(intent);        }
+            startActivity(intent);
+        }
     }
 
     public static boolean isTwoPane()

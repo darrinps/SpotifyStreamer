@@ -3,6 +3,7 @@ package udacity.standardandroid.com.spotifystreamer;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
@@ -68,7 +69,6 @@ public class PlayerFragment extends DialogFragment implements SeekBar.OnSeekBarC
     {
         PlayerFragment f = new PlayerFragment();
 
-        // Supply num input as an argument.
         Bundle args = new Bundle();
 
         args.putParcelableArrayList(KEY_ARRAY_LIST, arrayList);
@@ -88,8 +88,13 @@ public class PlayerFragment extends DialogFragment implements SeekBar.OnSeekBarC
         if (savedInstanceState != null)
         {
             //We've got data saved. Reconstitute it
+            if (mPlayer != null)
+            {
+                mPlayer.seekTo(savedInstanceState.getInt(KEY_SONG_POSITION));
+            }
         }
     }
+
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState)
@@ -106,8 +111,14 @@ public class PlayerFragment extends DialogFragment implements SeekBar.OnSeekBarC
         super.onSaveInstanceState(outState);
 
         //Save off the data we need to recreate everything..ie the spot the song was playing at
-        //TODO: Get location and put it in the line below
-        outState.putLong(KEY_SONG_POSITION, 1L);
+        int pos = 0;
+
+        if(mPlayer != null)
+        {
+            pos = mPlayer.getCurrentPosition();
+        }
+
+        outState.putInt(KEY_SONG_POSITION, pos);
     }
 
     @Override
