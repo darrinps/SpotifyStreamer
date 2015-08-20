@@ -1,7 +1,9 @@
 package udacity.standardandroid.com.spotifystreamer;
 
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -59,6 +61,7 @@ public class PlayerFragment extends DialogFragment implements SeekBar.OnSeekBarC
     private ArrayList<TrackRowItem> mTrackRowItemsList;
     private int                     mTrackRowIndex;
     private Target                  mLoadTarget;
+    private ProgressDialog          mSpinner = null;
 
 
     public PlayerFragment()
@@ -240,6 +243,8 @@ public class PlayerFragment extends DialogFragment implements SeekBar.OnSeekBarC
 
         try
         {
+            showSpinner(getResources().getString(R.string.loading));
+
             LoadAlbumBitmapTask task = new LoadAlbumBitmapTask(mImageView);
             task.execute(filename);
         }
@@ -433,6 +438,8 @@ public class PlayerFragment extends DialogFragment implements SeekBar.OnSeekBarC
             mOnPreparedListenerThread = new Thread(mMediaObserver);
 
             mOnPreparedListenerThread.start();
+
+            hideSpinner();
         }
     }
 
@@ -464,6 +471,8 @@ public class PlayerFragment extends DialogFragment implements SeekBar.OnSeekBarC
 
     private void handleItem(TrackRowItem item, boolean bLoadBitmap)
     {
+        showSpinner(getResources().getString(R.string.loading));
+
         if(mPlayer != null)
         {
             if(mPlayer.isPlaying())
@@ -533,4 +542,37 @@ public class PlayerFragment extends DialogFragment implements SeekBar.OnSeekBarC
 
         Picasso.with(getActivity()).load(url).into(mLoadTarget);
     }
+
+
+    private void hideSpinner()
+    {
+        if(mSpinner != null)
+        {
+            if(mSpinner.isShowing())
+            {
+                mSpinner.dismiss();
+            }
+        }
+    }
+
+    private void showSpinner(String message)
+    {
+        Log.i(TAG, "Request to show spinner...");
+
+        if(mSpinner == null)
+        {
+
+            final ProgressDialog spinner = new ProgressDialog(getActivity());
+
+            spinner.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            spinner.setMessage(message);
+
+            spinner.setCanceledOnTouchOutside(false);
+
+            mSpinner = spinner;
+        }
+
+        mSpinner.show();
+    }
+
 }
