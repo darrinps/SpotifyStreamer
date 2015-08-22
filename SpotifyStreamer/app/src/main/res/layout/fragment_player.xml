@@ -1,6 +1,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
     android:gravity="center"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
@@ -9,44 +11,47 @@
     android:background="@color/very_light_gray"
     tools:context="udacity.standardandroid.com.spotifystreamer.PlayerFragment">
 
-    <ScrollView
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent">
+
 
         <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:gravity="center"
+            android:layout_weight="100"
             android:orientation="vertical">
 
             <TextView
                 android:id="@+id/artist_name_id"
                 android:text="@string/artist_name"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="5"
                 />
 
             <TextView
                 android:id="@+id/album_name_id"
                 android:text="@string/album_name"
+                android:layout_weight="5"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="0dp" />
 
             <ImageView
                 android:id="@+id/image_id"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/spotify_image"
+                android:layout_height="0dp"
+                android:layout_weight="20"
                 />
 
             <TextView
                 android:id="@+id/track_name_id"
                 android:text="@string/track_name"
+                android:layout_weight="1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 
             <SeekBar
                 android:id="@+id/seek_bar_id"
+                android:layout_weight="1"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content" />
 
@@ -90,7 +95,7 @@
                     android:layout_height="wrap_content" />
             </RelativeLayout>
         </LinearLayout>
-    </ScrollView>
+
 
 
 </LinearLayout>

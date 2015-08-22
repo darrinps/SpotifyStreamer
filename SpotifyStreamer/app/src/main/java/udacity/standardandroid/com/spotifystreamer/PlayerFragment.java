@@ -62,6 +62,7 @@ public class PlayerFragment extends DialogFragment implements SeekBar.OnSeekBarC
     private int                     mTrackRowIndex;
     private Target                  mLoadTarget;
     private ProgressDialog          mSpinner = null;
+    private int                     mSeekToPosition;
 
 
     public PlayerFragment()
@@ -90,10 +91,19 @@ public class PlayerFragment extends DialogFragment implements SeekBar.OnSeekBarC
 
         if (savedInstanceState != null)
         {
+            int pos = savedInstanceState.getInt(KEY_SONG_POSITION);
+
+            Log.i(TAG, "Retrieving position data. Position is: " + pos);
+
             //We've got data saved. Reconstitute it
-            if (mPlayer != null)
+            if (mPlayer == null)
             {
-                mPlayer.seekTo(savedInstanceState.getInt(KEY_SONG_POSITION));
+                Log.i(TAG, "We have data to reload, but no player exists");
+                mSeekToPosition = pos;
+            }
+            else
+            {
+                mPlayer.seekTo(pos);
             }
         }
     }
@@ -122,6 +132,7 @@ public class PlayerFragment extends DialogFragment implements SeekBar.OnSeekBarC
         }
 
         outState.putInt(KEY_SONG_POSITION, pos);
+        outState.putInt(KEY_ITEM_INDEX, mTrackRowIndex);
     }
 
     @Override
@@ -140,14 +151,31 @@ public class PlayerFragment extends DialogFragment implements SeekBar.OnSeekBarC
         {
             mTrackRowItemsList = (ArrayList<TrackRowItem>) getArguments().get(KEY_ARRAY_LIST);
             filename = (String) getArguments().get(KEY_FILE_NAME);
-            mTrackRowIndex = (int)getArguments().get(KEY_ITEM_INDEX);
+
+            if(savedInstanceState == null)
+            {
+                mTrackRowIndex = (int) getArguments().get(KEY_ITEM_INDEX);
+            }
+            else
+            {
+                mTrackRowIndex = savedInstanceState.getInt(KEY_ITEM_INDEX);
+                filename = "";
+            }
 
             item = mTrackRowItemsList.get(mTrackRowIndex);
         }
         else
         {
             filename = intent.getStringExtra(TracksActivityFragment.KEY_ARTIST_BITMAP_FILE_NAME);
-            mTrackRowIndex = intent.getIntExtra(TracksActivityFragment.KEY_TRACK_ROW_LIST_POSITION, 0);
+
+            if(savedInstanceState == null)
+            {
+                mTrackRowIndex = intent.getIntExtra(TracksActivityFragment.KEY_TRACK_ROW_LIST_POSITION, 0);
+            }
+            else
+            {
+                mTrackRowIndex = savedInstanceState.getInt(KEY_ITEM_INDEX);
+            }
 
             item = mTrackRowItemsList.get(mTrackRowIndex);
         }
@@ -157,8 +185,6 @@ public class PlayerFragment extends DialogFragment implements SeekBar.OnSeekBarC
             Log.w(TAG, "TrackRowItem was null.");
             return view;
         }
-
-        item.getBigImageUrl();
 
         mArtistText         = (TextView) view.findViewById(R.id.artist_name_id);
         mAlbumText          = (TextView) view.findViewById(R.id.album_name_id);
@@ -243,10 +269,15 @@ public class PlayerFragment extends DialogFragment implements SeekBar.OnSeekBarC
 
         try
         {
-            showSpinner(getResources().getString(R.string.loading));
-
-            LoadAlbumBitmapTask task = new LoadAlbumBitmapTask(mImageView);
-            task.execute(filename);
+            if(filename != null && filename.length() > 0)
+            {
+                LoadAlbumBitmapTask task = new LoadAlbumBitmapTask(mImageView);
+                task.execute(filename);
+            }
+            else
+            {
+                loadBitmap(item.getBigImageUrl());
+            }
         }
         catch (IOException e)
         {
@@ -263,6 +294,7 @@ public class PlayerFragment extends DialogFragment implements SeekBar.OnSeekBarC
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
     {
+        Log.d(TAG, "Getting duration in onProgressChanged");
         int duration = mPlayer.getDuration();
         int position = mPlayer.getCurrentPosition();
 
@@ -284,11 +316,31 @@ public class PlayerFragment extends DialogFragment implements SeekBar.OnSeekBarC
     }
 
     @Override
+    public void onStop()
+    {
+        super.onStop();
+
+        if(getActivity().isChangingConfigurations())
+        {
+            Log.i(TAG, "Orientation changing: Stop playing. Current position will be saved though.");
+            if(mPlayer != null)
+            {
+                mPlayer.stop();
+            }
+        }
+        else
+        {
+            destroyMediaPlayer();
+        }
+    }
+
+    @Override
     public void onStopTrackingTouch(SeekBar seekBar)
     {
         int position = mSeekBar.getProgress();
 
         //Now the position is like a percentage so calculate where we need to seek to.
+        Log.d(TAG, "Getting duration in OnStopTrackingTouch");
         int duration = mPlayer.getDuration();
         int seekTo = (int)(duration * (position / 100f));
 
@@ -408,6 +460,7 @@ public class PlayerFragment extends DialogFragment implements SeekBar.OnSeekBarC
             }
 
             //Get the length of the sample (just in case they can vary
+            Log.d(TAG, "Getting duration in onPrepared");
             int duration = mPlayer.getDuration();
 
             //Now the duration is in milliseconds. Round this off to seconds
@@ -439,13 +492,28 @@ public class PlayerFragment extends DialogFragment implements SeekBar.OnSeekBarC
 
             mOnPreparedListenerThread.start();
 
+            if(mSeekToPosition > 0)
+            {
+                //We must have rotated the device while playing. Fast forward to that position now
+                mPlayer.seekTo(mSeekToPosition);
+                mSeekToPosition = 0;
+            }
+
             hideSpinner();
         }
     }
 
     private int getProgessForSeekBar()
     {
+        if(mPlayer == null)
+        {
+            return 0;
+        }
+
         int position = mPlayer.getCurrentPosition();
+
+//        Log.d(TAG, "Getting duration in getProgressForSeekBar");
+
         int duration = mPlayer.getDuration();
         float seekPosition = ((float)position / duration) * 100f;
 
@@ -466,13 +534,12 @@ public class PlayerFragment extends DialogFragment implements SeekBar.OnSeekBarC
         {
             mObserver.stop();
             mSeekBar.setProgress(0);
+            mStartTextSeekerBar.setText("0:00");
         }
     }
 
     private void handleItem(TrackRowItem item, boolean bLoadBitmap)
     {
-        showSpinner(getResources().getString(R.string.loading));
-
         if(mPlayer != null)
         {
             if(mPlayer.isPlaying())
@@ -505,6 +572,8 @@ public class PlayerFragment extends DialogFragment implements SeekBar.OnSeekBarC
         }
 
         mPlayer.prepareAsync(); // prepare async to not block main thread
+
+        showSpinner(getResources().getString(R.string.loading));
 
         //Set up a place to listen for it when it's ready to play to set up other things we need
         mPlayer.setOnPreparedListener(new MyOnPreparedListener());
@@ -561,7 +630,6 @@ public class PlayerFragment extends DialogFragment implements SeekBar.OnSeekBarC
 
         if(mSpinner == null)
         {
-
             final ProgressDialog spinner = new ProgressDialog(getActivity());
 
             spinner.setProgressStyle(ProgressDialog.STYLE_SPINNER);
@@ -575,4 +643,12 @@ public class PlayerFragment extends DialogFragment implements SeekBar.OnSeekBarC
         mSpinner.show();
     }
 
+    private void destroyMediaPlayer()
+    {
+        Log.i(TAG, "Destroying MediaPlayer");
+        mPlayer.stop();
+        mPlayer.reset();
+        mPlayer.release();
+        mPlayer = null;
+    }
 }
