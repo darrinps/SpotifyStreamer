@@ -295,6 +295,12 @@ public class PlayerFragment extends DialogFragment implements SeekBar.OnSeekBarC
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
     {
         Log.d(TAG, "Getting duration in onProgressChanged");
+
+        if(mPlayer == null)
+        {
+            return;
+        }
+
         int duration = mPlayer.getDuration();
         int position = mPlayer.getCurrentPosition();
 
@@ -307,6 +313,12 @@ public class PlayerFragment extends DialogFragment implements SeekBar.OnSeekBarC
     @Override
     public void onStartTrackingTouch(SeekBar seekBar)
     {
+
+        if(mPlayer == null)
+        {
+            return;
+        }
+
         if(mPlayer.isPlaying())
         {
             mPlayer.pause();
@@ -337,6 +349,11 @@ public class PlayerFragment extends DialogFragment implements SeekBar.OnSeekBarC
     @Override
     public void onStopTrackingTouch(SeekBar seekBar)
     {
+        if(mSeekBar == null)
+        {
+            return;
+        }
+
         int position = mSeekBar.getProgress();
 
         //Now the position is like a percentage so calculate where we need to seek to.
@@ -480,10 +497,11 @@ public class PlayerFragment extends DialogFragment implements SeekBar.OnSeekBarC
             mSeekBar.setProgress(getProgessForSeekBar());
 
             //Comment out to have them hit start before it starts to play
-//            mPlayer.start();
+            mPlayer.start();
 
             //Show as ready
-            mPlayOrPauseButton.setImageResource(android.R.drawable.ic_media_play);
+//            mPlayOrPauseButton.setImageResource(android.R.drawable.ic_media_play);
+            mPlayOrPauseButton.setImageResource(android.R.drawable.ic_media_pause);
             mPreviousButton.setImageResource(android.R.drawable.ic_media_previous);
             mNextButton.setImageResource(android.R.drawable.ic_media_next);
 
@@ -510,14 +528,21 @@ public class PlayerFragment extends DialogFragment implements SeekBar.OnSeekBarC
             return 0;
         }
 
-        int position = mPlayer.getCurrentPosition();
+        if(mPlayer == null)
+        {
+            return 0;
+        }
+        else
+        {
+            int position = mPlayer.getCurrentPosition();
 
 //        Log.d(TAG, "Getting duration in getProgressForSeekBar");
 
-        int duration = mPlayer.getDuration();
-        float seekPosition = ((float)position / duration) * 100f;
+            int duration = mPlayer.getDuration();
+            float seekPosition = ((float)position / duration) * 100f;
 
-        return (int)seekPosition;
+            return (int)seekPosition;
+        }
     }
 
     class MyOnCompletionListener implements MediaPlayer.OnCompletionListener
